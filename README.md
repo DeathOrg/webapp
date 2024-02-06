@@ -1,5 +1,14 @@
 # webapp
 
+- **Commands to set venv:**
+
+  ```bash
+    ```bash
+      python -m venv venv
+      source venv/bin/activate
+      deactivate
+   
+
 - **Commands to set up git remotes:**
 
   ```bash
