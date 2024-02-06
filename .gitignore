@@ -183,3 +183,6 @@ local_settings.py
 
 #for logger
 logger/
+
+# Ignore migration files
+myapp/migrations/
