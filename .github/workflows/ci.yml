@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     branches:
-      - main  # Adjust this to your main branch name
+      - main
 
 jobs:
   build:
@@ -16,18 +16,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.x  # Specify the Python version you want to use
+          python-version: 3.9
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements/requirements.txt -r requirements/dev-requirements.txt
-
-      - name: Run tests
-        run: |
-          # Add your command to run tests here
-          # For example:
-          pytest
-
-      # Add more steps as needed
-
+          
