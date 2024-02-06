@@ -1,14 +1,12 @@
+import base64
+
 from django.db import connection
 from django.db import IntegrityError
 from django.http import HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponse, JsonResponse
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from .serializers import UserSerializer, CreateUserSerializer
+
+from .models import User
+from .serializers import UserSerializer, CreateUserSerializer, UpdateUserSerializer
 import json
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
 
 
 def healthz(request):
@@ -83,31 +81,58 @@ def create_user(request):
         logger.error(f"An error occurred while processing user info request: {e}")
         return HttpResponseBadRequest(status=400)
 
-@authentication_classes([BasicAuthentication])
-@permission_classes([IsAuthenticated])
+
+def get_user_from_credentials(request):
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Basic '):
+        return None, None
+
+    encoded_credentials = auth_header[len('Basic '):]
+    decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
+    username, password = decoded_credentials.split(':', 1)
+
+    try:
+        user = User.objects.get(username=username)
+        return user, password
+    except User.DoesNotExist:
+        return None, None
+
+
 def user_info(request):
     try:
-        logger.info('User info endpoint accessed.')
-        logger.info(f'Requests: {request}')
-        if request.method == 'GET':
-            logger.info(f'Request user: {request.user}')
-            user = request.user
-            serializer = UserSerializer(user)
-            return JsonResponse(serializer.data, status=200)
-        elif request.method == 'PUT':
-            user = request.user
-            data = request.data  # Retrieve data from request.data
-            serializer = UserSerializer(user, data=data)
-            if serializer.is_valid():
-                serializer.save()
-                logger.info('User information updated successfully.')
-                return JsonResponse(serializer.data, status=200)  # Return JsonResponse with status 200
-            else:
-                logger.error('Invalid data received for updating user information.')
-                return HttpResponseBadRequest(status=400)
+        if request.method == 'GET' or request.method == 'PUT':
+            user, password = get_user_from_credentials(request)
+            if not user or password != user.password:
+                return HttpResponse(status=401)
+
+            if request.method == 'GET':
+                if request.body:
+                    logger.error('Bad request body received for get user info endpoint.')
+                    return HttpResponseBadRequest(status=400)
+                elif request.GET:
+                    logger.error('Bad query parameter received for get user info endpoint.')
+                    return HttpResponseBadRequest(status=400)
+                else:
+                    serializer = UserSerializer(user)
+                    return JsonResponse(serializer.data, status=200)
+            elif request.method == 'PUT':
+                if request.GET:
+                    logger.error('Bad query parameter received for update user info endpoint.')
+                    return HttpResponseBadRequest(status=400)
+                request_data = json.loads(request.body)
+                if not request_data.get('username') or request_data.get('username') != user.username:
+                    return HttpResponseBadRequest(status=400)
+                request_data.pop('username', None)
+                serializer = UpdateUserSerializer(user, data=request_data)
+                if serializer.is_valid():
+                    serializer.save()
+                    return HttpResponse(status=204)
+                else:
+                    return HttpResponseBadRequest(status=400)
+
         else:
-            logger.error('Method not allowed for user info endpoint.')
             return HttpResponseNotAllowed(['GET', 'PUT'])
+
     except Exception as e:
         logger.error(f"An error occurred while processing user info request: {e}")
         return HttpResponseBadRequest(status=400)
