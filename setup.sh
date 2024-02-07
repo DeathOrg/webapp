@@ -3,6 +3,7 @@
 set -e
 
 source config/.secret-env || { echo "Error: Unable to load environment variables from config.env"; exit 1; }
+source config/.env || { echo "Error: Unable to load environment variables from config.env"; exit 1; }
 
 # Check for Python
 if ! command -v python &> /dev/null; then
