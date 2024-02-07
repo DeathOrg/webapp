@@ -50,10 +50,5 @@ else
     fi
 fi
 
-
-#python manage.py flush --noinput
-#python manage.py makemigrations
-#python manage.py migrate
-
 # Run the development server
 python manage.py runserver
