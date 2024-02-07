@@ -1,5 +1,5 @@
 # webapp
-
+A simple web application for cloud
 - **Commands to set venv:**
 
   ```bash
@@ -19,4 +19,3 @@
     git remote set-url --push upstream no_push
   
 ### Give star if you like this repo
-
