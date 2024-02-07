@@ -6,4 +6,4 @@ class PingAPITest(SimpleTestCase):
         url = reverse('ping')  # Assuming 'ping' is the name of your ping API endpoint
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['message'], 'ping')
+        self.assertEqual(response.json()['message'], 'pong')
