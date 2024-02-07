@@ -2,6 +2,8 @@
 
 set -e
 
+source config/.secret-env || { echo "Error: Unable to load environment variables from config.env"; exit 1; }
+
 # Check for Python
 if ! command -v python &> /dev/null; then
     echo "Error: Python is not installed."
@@ -15,7 +17,7 @@ if [ ! -d "venv" ]; then
 fi
 
 # Activate virtual environment
-source venv/bin/activate
+source "$PROJECT_PATH"/venv/bin/activate
 
 # Upgrade pip
 python -m pip install --upgrade pip
@@ -27,19 +29,14 @@ python -m pip install -r requirements/requirements.txt -r requirements/dev-requi
 if python manage.py makemigrations --check myapp 2>&1 | grep -q "No changes detected"; then
     echo "No pending migrations found."
 else
-    # Define database credentials
-    DB_NAME="webApp"
-    DB_USER="dev-1"
-    DB_PASSWORD="DreamBig@08"
-    DB_HOST="localhost"
-
     # SQL query to delete migration records for the myapp app
-    SQL_QUERY="DELETE FROM django_migrations WHERE app='myapp';"
+    SQL_QUERY="DELETE FROM django_migrations WHERE app='$DB_NAME';"
 
     # Execute the SQL query using MySQL command line client
     mysql -u"$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" "$DB_NAME" -e "$SQL_QUERY"
 
     # Check if the command executed successfully
+    # shellcheck disable=SC2181
     if [ $? -eq 0 ]; then
       echo "Migration records for myapp deleted successfully."
       python manage.py flush --no-input
@@ -51,4 +48,4 @@ else
 fi
 
 # Run the development server
-python manage.py runserver
+python manage.py runserver "$APP_HOSTNAME":"$APP_PORT"
