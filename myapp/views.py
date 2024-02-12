@@ -1,6 +1,6 @@
 import base64
 
-from django.db import connection
+from django.contrib.auth.hashers import check_password
 from django.db import IntegrityError
 from django.http import HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponse, JsonResponse
 
@@ -20,14 +20,7 @@ def healthz(request):
                 logger.error('Bad query parameter received for healthz endpoint.')
                 return HttpResponseBadRequest(status=400)
             else:
-                try:
-                    cursor = connection.cursor()
-                    cursor.execute("SELECT 1")
-                    logger.info('Database connection successful.')
-                    return HttpResponse(status=200)
-                except Exception as e:
-                    logger.error(f"Error connecting to database: {e}")
-                    return HttpResponse(status=503)
+                return HttpResponse(status=200)
         else:
             logger.error('Method not allowed for healthz endpoint.')
             return HttpResponseNotAllowed(['GET'])
@@ -93,16 +86,19 @@ def get_user_from_credentials(request):
 
     try:
         user = User.objects.get(username=username)
-        return user, password
+        if check_password(password, user.password):
+            return user
+        else:
+            return None
     except User.DoesNotExist:
-        return None, None
+        return None
 
 
 def user_info(request):
     try:
         if request.method == 'GET' or request.method == 'PUT':
-            user, password = get_user_from_credentials(request)
-            if not user or password != user.password:
+            user = get_user_from_credentials(request)
+            if not user:
                 return HttpResponse(status=401)
 
             if request.method == 'GET':
@@ -120,9 +116,7 @@ def user_info(request):
                     logger.error('Bad query parameter received for update user info endpoint.')
                     return HttpResponseBadRequest(status=400)
                 request_data = json.loads(request.body)
-                if not request_data.get('username') or request_data.get('username') != user.username:
-                    return HttpResponseBadRequest(status=400)
-                request_data.pop('username', None)
+
                 # Check if any unexpected keys are present in request_data
                 unexpected_keys = set(request_data.keys()) - {'first_name', 'last_name', 'password'}
                 if unexpected_keys:

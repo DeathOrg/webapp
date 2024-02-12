@@ -27,6 +27,12 @@ class UpdateUserSerializer(serializers.ModelSerializer):
             if field_name not in ['first_name', 'last_name', 'password']:
                 self.fields.pop(field_name)
 
+    def update(self, instance, validated_data):
+        password = validated_data.get('password')
+        if password:
+            instance.set_password(password)
+        return super().update(instance, validated_data)
+
 
 class CreateUserSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
@@ -34,3 +40,8 @@ class CreateUserSerializer(BaseUserSerializer):
         read_only_fields = ['id', 'account_created', 'account_updated']
 
     password = serializers.CharField(write_only=True)
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = User.objects.create_user(password=password, **validated_data)
+        return user

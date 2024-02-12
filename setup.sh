@@ -48,5 +48,16 @@ else
     fi
 fi
 
+if [ "$ENVIRONMENT" = "production" ]; then
+    # Fetch the public IP of the VM
+    PUBLIC_IP=$(curl -s http://whatismyip.akamai.com/)
+    # Update Django settings file to include the VM's public IP in ALLOWED_HOSTS
+    sed -i "" "s|ALLOWED_HOSTS *= *\[\([^]]*\)]|ALLOWED_HOSTS = ['${PUBLIC_IP}']|" "$PROJECT_PATH"/webapp/settings.py
+else
+    PUBLIC_IP="localhost"
+    # Update Django settings file to include localhost in ALLOWED_HOSTS for local development
+    sed -i "" "s|ALLOWED_HOSTS *= *\[\([^]]*\)]|ALLOWED_HOSTS = ['localhost', '127.0.0.1']|" "$PROJECT_PATH"/webapp/settings.py
+fi
+
 # Run the development server
-python manage.py runserver "$APP_HOSTNAME":"$APP_PORT"
+python manage.py runserver "$PUBLIC_IP":"$APP_PORT"
