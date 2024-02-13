@@ -9,9 +9,26 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Cache Python packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -25,4 +42,11 @@ jobs:
 
       - name: Run tests
         run: |
+          sudo systemctl start mysql
+          sudo systemctl status mysql
+          mysql -u root -p"root" <<MYSQL_SCRIPT || handle_error "Failed to execute MySQL tasks."
+          CREATE USER IF NOT EXISTS 'test_user'@'localhost' IDENTIFIED BY 'test_password';
+          GRANT ALL PRIVILEGES ON *.* TO 'test_user'@'localhost';
+          FLUSH PRIVILEGES;
+          MYSQL_SCRIPT
           python manage.py test
