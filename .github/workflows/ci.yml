@@ -45,7 +45,7 @@ jobs:
           sudo systemctl start mysql
           sudo systemctl status mysql
           mysql -u root -p"root" <<MYSQL_SCRIPT || handle_error "Failed to execute MySQL tasks."
-          CREATE DATABASE IF NOT EXISTS 'webApp';
+          CREATE DATABASE IF NOT EXISTS webApp;
           CREATE USER IF NOT EXISTS 'test_user'@'localhost' IDENTIFIED BY 'test_password';
           GRANT ALL PRIVILEGES ON *.* TO 'test_user'@'localhost';
           FLUSH PRIVILEGES;
