@@ -56,7 +56,7 @@ jobs:
 
       - name: Run tests
         run: |
-          systemctl status mysql
-          systemctl start mysql
-          systemctl status mysql
+#          systemctl status mysql
+          sudo systemctl start mysql
+          sudo systemctl status mysql
           python manage.py test
