@@ -17,9 +17,20 @@ jobs:
           MYSQL_DATABASE: webApp
           MYSQL_USER: dev-1
           MYSQL_PASSWORD: DreamBig@08
+#        env:
+#          MYSQL_ROOT_PASSWORD: root
+#          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+#          DEBUG: ${{ secrets.DEBUG }}
+#          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+#          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+#          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+#          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+#          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+
 
     steps:
       - name: Checkout code
@@ -45,4 +56,5 @@ jobs:
 
       - name: Run tests
         run: |
+          systemctl status mysql
           python manage.py test
