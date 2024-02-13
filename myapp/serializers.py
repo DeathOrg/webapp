@@ -20,6 +20,13 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['first_name', 'last_name', 'password']
 
+        # Make all fields optional during updates
+        extra_kwargs = {
+            'first_name': {'required': False},
+            'last_name': {'required': False},
+            'password': {'required': False},
+        }
+
     def __init__(self, instance, *args, **kwargs):
         super().__init__(instance, *args, **kwargs)
         # Exclude other fields from update
@@ -28,10 +35,16 @@ class UpdateUserSerializer(serializers.ModelSerializer):
                 self.fields.pop(field_name)
 
     def update(self, instance, validated_data):
+        for field_name in self.fields.keys():
+            if field_name in validated_data:
+                setattr(instance, field_name, validated_data[field_name])
+
         password = validated_data.get('password')
         if password:
             instance.set_password(password)
-        return super().update(instance, validated_data)
+        instance.save()
+        return instance
+
 
 
 class CreateUserSerializer(BaseUserSerializer):

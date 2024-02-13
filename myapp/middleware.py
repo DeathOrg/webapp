@@ -20,13 +20,15 @@ class DatabaseCheckMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Check database connection before processing the request
         try:
+            # Check database connection before processing the request
             cursor = connection.cursor()
             cursor.execute("SELECT 1")
-        except DatabaseError:
-            # If there's a database error, return a 503 response
-            # return HttpResponseServerError("Database unavailable", status=503)
+        except DatabaseError as db_error:
+            logger.error(f"Database error: {db_error}")
+            return HttpResponse(status=503)
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
             return HttpResponse(status=503)
 
         # Proceed with processing the request

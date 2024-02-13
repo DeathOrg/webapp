@@ -52,7 +52,12 @@ def create_user(request):
     try:
         if request.method == 'POST':
             logger.info('Create user endpoint accessed.')
-            request_data = json.loads(request.body)
+            try:
+                request_data = json.loads(request.body)
+            except json.JSONDecodeError as e:
+                logger.error(f"Error decoding JSON: {e}")
+                return HttpResponseBadRequest(status=400)
+
             logger.info(f'Request data: {request_data}')
 
             serializer = CreateUserSerializer(data=request_data)
@@ -78,7 +83,7 @@ def create_user(request):
 def get_user_from_credentials(request):
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Basic '):
-        return None, None
+        return None
 
     encoded_credentials = auth_header[len('Basic '):]
     decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
@@ -127,6 +132,7 @@ def user_info(request):
                     serializer.save()
                     return HttpResponse(status=204)
                 else:
+                    logger.error(f'serializer.errors {serializer.errors}')
                     return HttpResponseBadRequest(status=400)
 
         else:
