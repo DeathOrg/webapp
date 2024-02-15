@@ -6,10 +6,12 @@ import pytz
 from dotenv import load_dotenv
 
 # Determine the paths to the .env and .secret-env files
-paths = [os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', file) for file in ['.secret-env', '.env']]
+dot_env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', '.env')
+load_dotenv(dot_env_path)
 
+# paths = [os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', file) for file in ['.env']]
 # Load environment variables from all files
-[load_dotenv(path) for path in paths]
+# [load_dotenv(path) for path in paths]
 
 
 class Logger:
