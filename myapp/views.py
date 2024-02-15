@@ -1,7 +1,6 @@
 import base64
 
 from django.contrib.auth.hashers import check_password
-from django.db import IntegrityError
 from django.http import HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponse, JsonResponse
 
 from .models import User
@@ -60,6 +59,11 @@ def create_user(request):
 
             logger.info(f'Request data: {request_data}')
 
+            # Check if the user already exists
+            if User.objects.filter(username=request_data.get('username')).exists():
+                logger.error('User with this username already exists.')
+                return JsonResponse({'error': 'User with this username already exists.'}, status=400)
+
             serializer = CreateUserSerializer(data=request_data)
             if serializer.is_valid():
                 logger.info('Serializer is valid.')
@@ -72,11 +76,16 @@ def create_user(request):
                 return HttpResponseBadRequest(status=400)
         else:
             return HttpResponseNotAllowed(['POST'])
-    except IntegrityError:
-        logger.error('User with this email already exists.')
-        return HttpResponseBadRequest(status=400)
     except Exception as e:
-        logger.error(f"An error occurred while processing user info request: {e}")
+        logger.error(f"Some error occurred: {e}")
+        try:
+            if "Table 'webApp.myapp_user' doesn't exist" in str(e):
+                logger.error(f"Database error occurred while processing create user request: {e}")
+                return JsonResponse({'error': 'An internal server error occurred. Please try again later.'},
+                                    status=500)
+        except Exception as eee:
+            logger.error(f"something bad happened while processing the error: {eee}")
+        logger.error(f"An error occurred while processing create user request: {e}")
         return HttpResponseBadRequest(status=400)
 
 
@@ -137,7 +146,14 @@ def user_info(request):
 
         else:
             return HttpResponseNotAllowed(['GET', 'PUT'])
-
     except Exception as e:
+        logger.error(f"Some error occurred: {e}")
+        try:
+            if "Table 'webApp.myapp_user' doesn't exist" in str(e):
+                logger.error(f"Database error occurred while processing user info request: {e}")
+                return JsonResponse({'error': 'An internal server error occurred. Please try again later.'},
+                                    status=500)
+        except Exception as eee:
+            logger.error(f"something bad happened while processing the error: {eee}")
         logger.error(f"An error occurred while processing user info request: {e}")
         return HttpResponseBadRequest(status=400)
