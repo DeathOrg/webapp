@@ -13,8 +13,8 @@ jobs:
       mysql:
         image: mysql:latest
         env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: test_db
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_ROOT_USER }}
+          MYSQL_DATABASE: ${{ secrets.DB_NAME }}
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -44,10 +44,10 @@ jobs:
         run: |
           sudo systemctl start mysql
           sudo systemctl status mysql
-          mysql -u root -p"${{ secrets.DB_ROOT_PASSWORD }}" <<MYSQL_SCRIPT || handle_error "Failed to execute MySQL tasks."
+          mysql -u ${{ secrets.DB_ROOT_USER }} -p"${{ secrets.DB_ROOT_PASSWORD }}" <<MYSQL_SCRIPT || handle_error "Failed to execute MySQL tasks."
           CREATE DATABASE IF NOT EXISTS webApp;
-          CREATE USER IF NOT EXISTS 'test_user'@'localhost' IDENTIFIED BY 'test_password';
-          GRANT ALL PRIVILEGES ON *.* TO 'test_user'@'localhost';
+          CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'localhost' IDENTIFIED BY '${{ secrets.DB_USER_PASSWORD }}';
+          GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USER }'@'localhost';
           FLUSH PRIVILEGES;
           MYSQL_SCRIPT
           python manage.py makemigrations
