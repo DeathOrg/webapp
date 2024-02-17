@@ -48,12 +48,12 @@ jobs:
 
       - name: Set up MySQL
         run: |
-          mysql -u ${{ secrets.DB_ROOT_USER }} -p"${{ secrets.DB_ROOT_PASSWORD }}" <<MYSQL_SCRIPT || handle_error "Failed to execute MySQL tasks."
+          mysql -u root -p"${{ secrets.DB_ROOT_PASSWORD }}" <<EOF
           CREATE DATABASE IF NOT EXISTS webApp;
           CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'localhost' IDENTIFIED BY '${{ secrets.DB_USER_PASSWORD }}';
-          GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USER }'@'localhost';
+          GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USER }}'@'localhost';
           FLUSH PRIVILEGES;
-          MYSQL_SCRIPT
+          EOF
 
       - name: Run Django Migrations
         run: |
