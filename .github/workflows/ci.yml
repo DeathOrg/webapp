@@ -13,8 +13,10 @@ jobs:
       mysql:
         image: mysql:latest
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_ROOT_USER }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
           MYSQL_DATABASE: ${{ secrets.DB_NAME }}
+          MYSQL_USER: ${{ secrets.DB_USER }}
+          MYSQL_PASSWORD: ${{ secrets.DB_USER_PASSWORD }}
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -40,16 +42,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/requirements.txt -r requirements/dev-requirements.txt
 
-      - name: Run tests
+      - name: Start MySQL Service
+        run: sudo systemctl start mysql
+
+      - name: Check MySQL Service Status
+        run: sudo systemctl status mysql
+
+      - name: Set up MySQL
         run: |
-          sudo systemctl start mysql
-          sudo systemctl status mysql
-          mysql -u ${{ secrets.DB_ROOT_USER }} -p"${{ secrets.DB_ROOT_PASSWORD }}" <<MYSQL_SCRIPT || handle_error "Failed to execute MySQL tasks."
-          CREATE DATABASE IF NOT EXISTS webApp;
-          CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'localhost' IDENTIFIED BY '${{ secrets.DB_USER_PASSWORD }}';
-          GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USER }'@'localhost';
-          FLUSH PRIVILEGES;
-          MYSQL_SCRIPT
+          mysql -e "CREATE DATABASE IF NOT EXISTS ${{ secrets.DB_NAME }};"
+          mysql -e "CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'localhost' IDENTIFIED BY '${{ secrets.DB_USER_PASSWORD }}';"
+          mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USER }}'@'localhost';"
+          mysql -e "FLUSH PRIVILEGES;"
+
+      - name: Run Django Migrations
+        run: |
           python manage.py makemigrations
           python manage.py migrate
-          python manage.py test
+
+      - name: Run tests
+        run: python manage.py test
