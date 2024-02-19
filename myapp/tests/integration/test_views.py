@@ -89,7 +89,7 @@ class UserInfoEndpointTest(TestCase):
         response = self.get_user_info_response()
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.content)
-        self.assertEqual(response_data['first_name'], 'first')
+        self.assertEqual(response_data['first_name'], 'John')
         self.assertEqual(response_data['last_name'], 'Doe')
 
     def test_user_info_endpoint_put_with_valid_credentials_and_invalid_data(self):
