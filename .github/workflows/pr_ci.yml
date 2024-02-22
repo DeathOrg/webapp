@@ -66,6 +66,16 @@ jobs:
   packer_validation:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug Info
+        run: |
+          pwd
+          ls -la
+          cd $GITHUB_WORKSPACE
+          ls -la
+          cd packer
+          ls -la
+          echo "Finished Debug Info"
+
       - name: Format Packer template
         run: |
           ls -la
