@@ -46,7 +46,7 @@ main() {
 
     # Setup web application
     echo "Setting up web application..."
-    mkdir -p /home/csye6225/cloud
+    mkdir -p /home/csye6225/cloud/webapp
     unzip webapp.zip -d /home/csye6225/cloud
     chmod +x /home/csye6225/cloud/webapp/setup.sh
     sudo mv /tmp/webapp.service /etc/systemd/system/webapp.service
