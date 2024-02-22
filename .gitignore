@@ -186,3 +186,21 @@ logger/
 
 #for migration files
 myapp/migrations
+
+# Packer build artifacts
+*.log
+*.json
+*.ovf
+*.vmdk
+*.ova
+
+# Sensitive files
+secrets.json
+credentials.json
+.env
+
+# Local configuration
+packer_cache/
+.terraform/
+.idea/
+.vscode/
