@@ -14,10 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: x86-64
 
       - name: Configure Google Cloud credentials
         uses: google-github-actions/setup-gcloud@v0
@@ -27,11 +26,29 @@ jobs:
 
       - name: Zip creation
         run: |
-          mkdir app_artifact
-          mkdir requirements
-          zip -r webapp . -x ".git/" ".github/"
-          cp webapp/packer/requirements.txt requirements
-          mv webapp.zip app_artifact
+          mkdir -p app_artifact
+          mkdir -p requirements
+          cp packer/scripts/requirements.txt requirements || exit 1
+          zip -r webapp.zip . -x ".git/*" ".github/*" || exit 1
+          mv webapp.zip app_artifact || exit 1
+
+      - name: Format Packer template
+        run: |
+          cd packer
+          output=$(packer fmt -check .)
+          if [ -n "$output" ]; then
+            echo "$output"
+            exit 1
+          fi
+
+      - name: Validate Packer
+        env:
+          PACKER_GITHUB_API_TOKEN: ${{ secrets.PACKER_GITHUB_API_TOKEN }}
+        run: |
+          cd packer
+          packer init webapp.pkr.hcl
+          packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}8' webapp.pkr.hcl
+      
 
       # Set multiple environment variables from secrets
       - name: Set environment variables from secrets
@@ -46,7 +63,7 @@ jobs:
           cd packer
           packer init webapp.pkr.hcl
           packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}8' webapp.pkr.hcl
-          packer build -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }7' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl || exit 1
+          packer build -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl || exit 1
 
       - name: Report status
         if: always()
