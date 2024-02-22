@@ -8,19 +8,10 @@ handle_error() {
     exit 1
 }
 
-echo "Current folder location..."
-pwd
-
-echo "ls folder location..."
-ls -la
-
-echo "tmp ls folder location..."
-ls -la /tmp
-
-## Update system
-#echo "Updating System..."
-#sudo yum update -y || handle_error "Failed to update system packages."
-#sudo yum upgrade -y
+# Update system
+echo "Updating System..."
+sudo yum update -y || handle_error "Failed to update system packages."
+sudo yum upgrade -y
 
 # Install Python 3.9
 echo "Installing Python 3.9..."

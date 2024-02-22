@@ -25,7 +25,6 @@ create_mysql_database_user() {
     echo "Creating MySQL database and user..."
     echo "Database name: $DATABASE_NAME"
     echo "Database user: $DATABASE_USER"
-    echo "Database user password: $DATABASE_PASSWORD"
     mysql -u root -p"$MYSQL_ROOT_PASSWORD" <<MYSQL_SCRIPT || handle_error "Failed to execute MySQL tasks."
     CREATE DATABASE IF NOT EXISTS \`$DATABASE_NAME\`;
     CREATE USER IF NOT EXISTS '$DATABASE_USER'@'localhost' IDENTIFIED BY '$DATABASE_PASSWORD';
