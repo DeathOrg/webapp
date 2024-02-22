@@ -68,6 +68,8 @@ jobs:
     steps:
       - name: Format Packer template
         run: |
+          ls
+          pwd
           cd packer
           output=$(packer fmt -check .)
           if [ -n "$output" ]; then
