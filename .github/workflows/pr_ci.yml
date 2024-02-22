@@ -62,3 +62,21 @@ jobs:
 
       - name: Run tests
         run: python manage.py test
+
+  packer_validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Format Packer template
+        run: |
+          cd packer
+          output=$(packer fmt -check .)
+          if [ -n "$output" ]; then
+            echo "$output"
+            exit 1
+          fi
+
+      - name: Validate Packer
+        run: |
+          cd packer
+          packer init webapp.pkr.hcl
+          packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}8' webapp.pkr.hcl
