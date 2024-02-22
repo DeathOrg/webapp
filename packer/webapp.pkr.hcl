@@ -49,16 +49,15 @@ variable "disk_size" {
 }
 
 variable "app_artifact_path" {
-  type    = string
-  default = "../app_artifact/webapp.zip"
-  #  default = "/Users/sourabhkumar/Downloads/webapp.zip"
+  type = string
+    default = "../../app_artifact/webapp.zip"
+#  default = "/Users/sourabhkumar/Downloads/webapp.zip"
 }
 
 variable "requirement_path" {
   type = string
   #  default = "../app_artifact/webapp.zip"
-  default = "requirements/requirements.txt"
-  #  default = "/Users/sourabhkumar/Documents/NEU/Sem-2/Cloud/Assignments/Assignment-02/webapp/packer/scripts/requirements.txt"
+  default = "scripts/requirements.txt"
 }
 
 variable "mysql_root_password" {
