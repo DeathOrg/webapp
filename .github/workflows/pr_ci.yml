@@ -73,7 +73,7 @@ jobs:
         run: |
           mkdir -p app_artifact
           mkdir -p requirements
-          cp webapp/packer/scripts/requirements.txt requirements || exit 1
+          cp packer/scripts/requirements.txt requirements || exit 1
           zip -r webapp.zip . -x ".git/*" ".github/*" || exit 1
           mv webapp.zip app_artifact || exit 1
 
