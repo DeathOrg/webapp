@@ -54,6 +54,8 @@ main() {
     echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> "$PROJECT_LOC"/config/.env
     rm -rf /home/csye6225/webapp* __MACOSX
     rm -rf /home/csye6225/cloud/__MACOSX
+    rm -rf /home/csye6225/cloud/webapp/app_artifact
+    rm -f /home/csye6225/cloud/webapp/*.json
 
     touch /etc/.webappconf
     echo "PROJECT_LOC=$PROJECT_LOC" >> /etc/.webappconf
