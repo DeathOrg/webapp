@@ -55,8 +55,6 @@ main() {
     rm -rf /home/csye6225/webapp* __MACOSX
     rm -rf /home/csye6225/cloud/__MACOSX
 
-    sudo chown -R csye6225:csye6225 /home/csye6225/cloud/webapp/logger
-    sudo chmod -R 755 /home/csye6225/cloud/webapp/logger
     sudo chown csye6225:csye6225 /home/csye6225/cloud/webapp/setup.sh
     sudo chown -R csye6225:csye6225 /home/csye6225/cloud/webapp
     sudo chmod -R 755 /home/csye6225/cloud/webapp
