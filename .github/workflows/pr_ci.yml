@@ -80,11 +80,17 @@ jobs:
 
       - name: Zip creation
         run: |
-          mkdir app_artifact
-          mkdir requirements
-          zip -r webapp . -x ".git/" ".github/"
-          cp webapp/packer/scripts/requirements.txt requirements
-          mv webapp.zip app_artifact
+          mkdir -p app_artifact
+          mkdir -p requirements
+          cp webapp/packer/scripts/requirements.txt requirements || exit 1
+          zip -r webapp.zip . -x ".git/*" ".github/*" || exit 1
+          mv webapp.zip app_artifact || exit 1
+
+      - name: Clean Up
+        run: |
+          rm -rf app_artifact
+          rm -rf requirements
+        if: always()
 
       - name: Validate Packer
         env:
