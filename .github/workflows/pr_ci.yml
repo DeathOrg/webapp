@@ -78,6 +78,14 @@ jobs:
             exit 1
           fi
 
+      - name: Zip creation
+        run: |
+          mkdir app_artifact
+          mkdir requirements
+          zip -r webapp . -x ".git/" ".github/"
+          cp webapp/packer/scripts/requirements.txt requirements
+          mv webapp.zip app_artifact
+
       - name: Validate Packer
         env:
           PACKER_GITHUB_API_TOKEN: ${{ secrets.PACKER_GITHUB_API_TOKEN }}
