@@ -54,11 +54,8 @@ main() {
     echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> "$PROJECT_LOC"/config/.env
     rm -rf /home/csye6225/webapp* __MACOSX
     rm -rf /home/csye6225/cloud/__MACOSX
-    rm -rf /home/csye6225/cloud/webapp/app_artifact
-    rm -f /home/csye6225/cloud/webapp/*.json
-
-    touch /etc/.webappconf
-    echo "PROJECT_LOC=$PROJECT_LOC" >> /etc/.webappconf
+    rm -rf "$PROJECT_LOC"/app_artifact
+    rm -f "$PROJECT_LOC"/*.json
 
     sudo chown csye6225:csye6225 "$PROJECT_LOC"/setup.sh
     sudo chown -R csye6225:csye6225 "$PROJECT_LOC"
@@ -70,6 +67,8 @@ main() {
     sudo systemctl enable webapp.service || handle_error "Failed to enable webapp.service."
     sudo systemctl restart webapp.service || handle_error "Failed to restart webapp.service."
     sudo systemctl status webapp.service || handle_error "Failed to check webapp.service status."
+
+    ls -la "$PROJECT_LOC"/myapp/migrations
 }
 
 # Execute the main function
