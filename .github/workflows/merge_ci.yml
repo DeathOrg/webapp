@@ -2,7 +2,7 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
@@ -10,9 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ 3.9 ]
+        python-version: [3.9]
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
@@ -48,21 +49,12 @@ jobs:
           cd packer
           packer init webapp.pkr.hcl
           packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}8' webapp.pkr.hcl
-      
-
-      # Set multiple environment variables from secrets
-      - name: Set environment variables from secrets
-        run: |
-          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> $GITHUB_ENV
-          echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> $GITHUB_ENV
-          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> $GITHUB_ENV
-
 
       - name: Build app image
         run: |
           cd packer
           packer init webapp.pkr.hcl
-          packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl
+          packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}8' webapp.pkr.hcl
           packer build -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl || exit 1
 
       - name: Report status
