@@ -49,9 +49,9 @@ variable "disk_size" {
 }
 
 variable "app_artifact_path" {
-  type = string
-    default = "../../app_artifact/webapp.zip"
-#  default = "/Users/sourabhkumar/Downloads/webapp.zip"
+  type    = string
+  default = "../../app_artifact/webapp.zip"
+  #  default = "/Users/sourabhkumar/Downloads/webapp.zip"
 }
 
 variable "requirement_path" {
