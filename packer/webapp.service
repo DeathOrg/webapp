@@ -8,7 +8,7 @@ Environment=PORT=8000
 User=csye6225
 Group=csye6225
 Type=simple
-ExecStart=/home/csye6225/cloud/webapp/setup.sh
+ExecStart=/home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp
 
 # Restart the service if it crashes or gets stopped
 Restart=always
