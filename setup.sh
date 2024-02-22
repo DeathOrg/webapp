@@ -1,8 +1,9 @@
 #!/bin/bash
 
 set -e
-
-source /home/csye6225/cloud/webapp/config/.env || { echo "Error: Unable to load environment variables from config.env"; exit 1; }
+pwd
+project_loc="$1"
+source "$project_loc"/config/.env || { echo "Error: Unable to load environment variables from config.env"; exit 1; }
 
 cd "$PROJECT_PATH"
 # Apply migrations if necessary

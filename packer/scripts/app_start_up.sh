@@ -46,19 +46,22 @@ main() {
 
     # Setup web application
     echo "Setting up web application..."
-    mkdir -p /home/csye6225/cloud/webapp
-    unzip webapp.zip -d /home/csye6225/cloud/webapp
-    chmod +x /home/csye6225/cloud/webapp/setup.sh
+    mkdir -p "$PROJECT_LOC"
+    unzip webapp.zip -d "$PROJECT_LOC"
+    chmod +x $PROJECT_LOC/setup.sh
     sudo mv /tmp/webapp.service /etc/systemd/system/webapp.service
 
-    echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> /home/csye6225/cloud/webapp/config/.env
+    echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> "$PROJECT_LOC"/config/.env
     rm -rf /home/csye6225/webapp* __MACOSX
     rm -rf /home/csye6225/cloud/__MACOSX
 
-    sudo chown csye6225:csye6225 /home/csye6225/cloud/webapp/setup.sh
-    sudo chown -R csye6225:csye6225 /home/csye6225/cloud/webapp
-    sudo chmod -R 755 /home/csye6225/cloud/webapp
-    chmod +x /home/csye6225/cloud/webapp/setup.sh
+    touch /etc/.webappconf
+    echo "PROJECT_LOC=$PROJECT_LOC" >> /etc/.webappconf
+
+    sudo chown csye6225:csye6225 "$PROJECT_LOC"/setup.sh
+    sudo chown -R csye6225:csye6225 "$PROJECT_LOC"
+    sudo chmod -R 755 "$PROJECT_LOC"
+    chmod +x "$PROJECT_LOC"/setup.sh
     sudo setenforce 0
 
     sudo systemctl daemon-reload || handle_error "Failed to reload systemd."

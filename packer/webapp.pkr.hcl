@@ -122,9 +122,9 @@ build {
   # Unzip and set permissions
   provisioner "shell" {
     inline = [
-      "cd /home/csye6225",
+      "cd /home/${var.ssh_username}",
       "unzip webapp.zip",
-      "chown -R csye6225:csye6225 *"
+      "chown -R ${var.ssh_username}:${var.ssh_username} *"
     ]
   }
 
@@ -140,7 +140,7 @@ build {
       "DATABASE_NAME=${var.mysql_database_name}",
       "DATABASE_USER=${var.mysql_user}",
       "DATABASE_PASSWORD=${var.mysql_user_password}",
-      "MY_DB=${var.mysql_user_password}"
+      "PROJECT_LOC=/home/${var.ssh_username}/cloud/webapp"
     ]
   }
 }
