@@ -79,6 +79,8 @@ jobs:
           fi
 
       - name: Validate Packer
+        env:
+          PACKER_GITHUB_API_TOKEN: ${{ secrets.PACKER_GITHUB_API_TOKEN }}
         run: |
           cd packer
           packer init webapp.pkr.hcl
