@@ -77,12 +77,6 @@ jobs:
           zip -r webapp.zip . -x ".git/*" ".github/*" || exit 1
           mv webapp.zip app_artifact || exit 1
 
-      - name: Clean Up
-        run: |
-          rm -rf app_artifact
-          rm -rf requirements
-        if: always()
-
       - name: Format Packer template
         run: |
           cd packer
