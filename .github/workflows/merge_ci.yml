@@ -43,7 +43,6 @@ jobs:
 
       - name: Build app image
         run: |
-          cd $GITHUB_WORKSPACE
           cd packer
           packer init webapp.pkr.hcl
           packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}8' webapp.pkr.hcl

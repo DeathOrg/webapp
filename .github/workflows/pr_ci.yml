@@ -66,21 +66,11 @@ jobs:
   packer_validation:
     runs-on: ubuntu-latest
     steps:
-      - name: Debug Info
-        run: |
-          pwd
-          ls -la
-          cd $GITHUB_WORKSPACE
-          ls -la
-          cd packer
-          ls -la
-          echo "Finished Debug Info"
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Format Packer template
         run: |
-          ls -la
-          cd $GITHUB_WORKSPACE
-          ls -la $GITHUB_WORKSPACE
           cd packer
           output=$(packer fmt -check .)
           if [ -n "$output" ]; then
@@ -90,8 +80,6 @@ jobs:
 
       - name: Validate Packer
         run: |
-          cd $GITHUB_WORKSPACE
-          ls -la $GITHUB_WORKSPACE
           cd packer
           packer init webapp.pkr.hcl
           packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}8' webapp.pkr.hcl
