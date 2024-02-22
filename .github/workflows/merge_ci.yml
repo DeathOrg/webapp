@@ -19,11 +19,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Configure Google Cloud credentials
-        uses: google-github-actions/setup-gcloud@v0
+      - name: Google auth
+        uses: google-github-actions/auth@v2
         with:
-          service_account_key: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+            credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Use gcloud CLI
+        run: gcloud info
 
       - name: Zip creation
         run: |
