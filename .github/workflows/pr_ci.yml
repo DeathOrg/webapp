@@ -69,15 +69,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Format Packer template
-        run: |
-          cd packer
-          output=$(packer fmt -check .)
-          if [ -n "$output" ]; then
-            echo "$output"
-            exit 1
-          fi
-
       - name: Zip creation
         run: |
           mkdir -p app_artifact
@@ -91,6 +82,15 @@ jobs:
           rm -rf app_artifact
           rm -rf requirements
         if: always()
+
+      - name: Format Packer template
+        run: |
+          cd packer
+          output=$(packer fmt -check .)
+          if [ -n "$output" ]; then
+            echo "$output"
+            exit 1
+          fi
 
       - name: Validate Packer
         env:
