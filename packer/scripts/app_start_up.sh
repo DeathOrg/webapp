@@ -68,6 +68,8 @@ main() {
     sudo systemctl restart webapp.service || handle_error "Failed to restart webapp.service."
     sudo systemctl status webapp.service || handle_error "Failed to check webapp.service status."
 
+    sleep 150
+
     ls -la "$PROJECT_LOC"/myapp/migrations
 }
 
