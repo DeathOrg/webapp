@@ -7,8 +7,12 @@ source "$project_loc"/config/.env || { echo "Error: Unable to load environment v
 
 cd "$PROJECT_PATH"
 # Apply migrations if necessary
-if ! python3.9 manage.py showmigrations --plan | grep "No planned migration"; then
+if python3.9 manage.py showmigrations --plan | grep -q "\[ \]"; then
+    echo "Pending migrations found. Applying migrations..."
     python3.9 manage.py migrate
+    echo "Migrations applied successfully."
+else
+    echo "No pending migrations found."
 fi
 
 # Check if there are pending migrations
