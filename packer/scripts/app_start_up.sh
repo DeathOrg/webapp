@@ -63,6 +63,8 @@ main() {
     chmod +x "$PROJECT_LOC"/setup.sh
     sudo setenforce 0
 
+    "$PROJECT_LOC"/setup.sh "$PROJECT_LOC"
+
     sudo systemctl daemon-reload || handle_error "Failed to reload systemd."
     sudo systemctl enable webapp.service || handle_error "Failed to enable webapp.service."
     sudo systemctl restart webapp.service || handle_error "Failed to restart webapp.service."

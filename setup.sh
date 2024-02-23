@@ -35,6 +35,3 @@ else
       echo "Failed to delete migration records for myapp."
     fi
 fi
-
-# Run the development server
-python3.9 manage.py runserver 0.0.0.0:"$APP_PORT"
