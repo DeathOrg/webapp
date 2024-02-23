@@ -3,12 +3,12 @@ Description=WebApp Service
 After=network.target
 
 [Service]
-WorkingDirectory=/home/csye6225/cloud
+WorkingDirectory=/home/csye6225/cloud/webapp
 Environment=PORT=8000
 User=csye6225
 Group=csye6225
 Type=simple
-ExecStart=/home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp
+ExecStart=python3.9 /home/csye6225/cloud/webapp/manage.py runserver 0.0.0.0:8000
 
 # Restart the service if it crashes or gets stopped
 Restart=always
