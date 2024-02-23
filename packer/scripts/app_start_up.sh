@@ -63,10 +63,10 @@ main() {
     chmod +x "$PROJECT_LOC"/setup.sh
     sudo setenforce 0
 
-#    sudo systemctl daemon-reload || handle_error "Failed to reload systemd."
-#    sudo systemctl enable webapp.service || handle_error "Failed to enable webapp.service."
-#    sudo systemctl restart webapp.service || handle_error "Failed to restart webapp.service."
-#    sudo systemctl status webapp.service || handle_error "Failed to check webapp.service status."
+    sudo systemctl daemon-reload || handle_error "Failed to reload systemd."
+    sudo systemctl enable webapp.service || handle_error "Failed to enable webapp.service."
+    sudo systemctl restart webapp.service || handle_error "Failed to restart webapp.service."
+    sudo systemctl status webapp.service || handle_error "Failed to check webapp.service status."
 
     ls -la "$PROJECT_LOC"/myapp/migrations
 }
