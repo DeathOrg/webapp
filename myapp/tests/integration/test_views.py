@@ -12,7 +12,7 @@ class HealthzEndpointTest(TestCase):
 
     def test_healthz_endpoint_get(self):
         response = self.client.get(reverse('healthz'))
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 200)
 
     def test_healthz_endpoint_post(self):
         response = self.client.post(reverse('healthz'))
