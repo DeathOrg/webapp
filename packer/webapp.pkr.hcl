@@ -54,7 +54,7 @@ variable "app_artifact_path" {
   #  default = "/Users/sourabhkumar/Downloads/webapp.zip"
 }
 
-varile "requirement_path" {
+variable "requirement_path" {
   type = string
   #  default = "../app_artifact/webapp.zip"
   default = "scripts/requirements.txt"
