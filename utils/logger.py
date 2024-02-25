@@ -15,14 +15,14 @@ class Logger:
 
     def initialize_logger(self):
         try:
-            base_path = os.getenv("LOGGER_PATH")
+            base_path = os.getenv("PROJECT_PATH")
 
             # Create logger
             self.logger = logging.getLogger(__name__)
             self.logger.setLevel(logging.DEBUG)
 
             # Create log directory if not exists
-            log_dir = os.path.join(base_path, 'webapp_logger', datetime.now().strftime('%Y/%m'))
+            log_dir = os.path.join(base_path, 'logger', datetime.now().strftime('%Y/%m'))
             os.makedirs(log_dir, exist_ok=True)
 
             # Create log file name based on the day of the month
