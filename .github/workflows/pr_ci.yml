@@ -44,11 +44,11 @@ jobs:
           mysql user: ${{ secrets.DB_USER }} # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
           mysql password: ${{ secrets.DB_USER_TEST_PASSWORD }} # Required if "mysql user" exists. The password for the "mysql user"
 
-#      - name: Start MySQL Service
-#        run: sudo systemctl start mysql
-#
-#      - name: Check MySQL Service Status
-#        run: sudo systemctl status mysql
+      - name: Start MySQL Service
+        run: sudo systemctl start mysql
+
+      - name: Check MySQL Service Status
+        run: sudo systemctl status mysql
 #
 #      - name: Set up MySQL
 #        run: |
