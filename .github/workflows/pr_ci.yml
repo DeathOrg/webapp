@@ -53,7 +53,8 @@ jobs:
       - name: Set up MySQL
         run: |
           mysql -u root -p"${{ secrets.DB_ROOT_PASSWORD }}" <<EOF
-          GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USER }}'@'localhost';
+          CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'localhost' IDENTIFIED BY '${{ secrets.DB_USER_TEST_PASSWORD }}';
+          GRANT ALL PRIVILEGES ON \`${{ secrets.DB_NAME }}\`.* TO '${{ secrets.DB_USER }}'@'localhost';
           FLUSH PRIVILEGES;
           EOF
 
