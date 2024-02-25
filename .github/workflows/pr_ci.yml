@@ -9,15 +9,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:latest
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.DB_NAME }}
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -40,20 +31,31 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/requirements.txt -r requirements/dev-requirements.txt
 
-      - name: Start MySQL Service
-        run: sudo systemctl start mysql
+      - name: Setup MySQL
+        uses: mirromutth/mysql-action@v1.1
+        with:
+          host port: 3306 # Optional, default value is 3306. The port of host
+          container port: 3306 # Optional, default value is 3306. The port of container
+          character set server: 'utf8' # Optional, default value is 'utf8mb4'. The '--character-set-server' option for mysqld
+          collation server: 'utf8_general_ci' # Optional, default value is 'utf8mb4_general_ci'. The '--collation-server' option for mysqld
+          mysql version: '8.0' # Optional, default value is "latest". The version of the MySQL
+          mysql database: ${{ secrets.DB_NAME }} # Optional, default value is "test". The specified database which will be create
+          mysql root password: ${{ secrets.DB_ROOT_PASSWORD }} # Required if "mysql user" is empty, default is empty. The root superuser password
+          mysql user: ${{ secrets.DB_USER }} # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
+          mysql password: ${{ secrets.DB_USER_TEST_PASSWORD }} # Required if "mysql user" exists. The password for the "mysql user"
 
-      - name: Check MySQL Service Status
-        run: sudo systemctl status mysql
-
-      - name: Set up MySQL
-        run: |
-          mysql -u root -p"${{ secrets.DB_ROOT_PASSWORD }}" <<EOF
-          CREATE DATABASE IF NOT EXISTS ${{ secrets.DB_NAME }};
-          CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'localhost' IDENTIFIED BY '${{ secrets.DB_USER_TEST_PASSWORD }}';
-          GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USER }}'@'localhost';
-          FLUSH PRIVILEGES;
-          EOF
+#      - name: Start MySQL Service
+#        run: sudo systemctl start mysql
+#
+#      - name: Check MySQL Service Status
+#        run: sudo systemctl status mysql
+#
+#      - name: Set up MySQL
+#        run: |
+#          mysql -u root -p"${{ secrets.DB_ROOT_PASSWORD }}" <<EOF
+#          GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USER }}'@'localhost';
+#          FLUSH PRIVILEGES;
+#          EOF
 
       - name: Run Django Migrations
         run: |
