@@ -49,13 +49,13 @@ jobs:
 
       - name: Check MySQL Service Status
         run: sudo systemctl status mysql
-#
-#      - name: Set up MySQL
-#        run: |
-#          mysql -u root -p"${{ secrets.DB_ROOT_PASSWORD }}" <<EOF
-#          GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USER }}'@'localhost';
-#          FLUSH PRIVILEGES;
-#          EOF
+
+      - name: Set up MySQL
+        run: |
+          mysql -u root -p"${{ secrets.DB_ROOT_PASSWORD }}" <<EOF
+          GRANT ALL PRIVILEGES ON `${{ secrets.DB_NAME }}`.* TO '${{ secrets.DB_USER }}'@'localhost';
+          FLUSH PRIVILEGES;
+          EOF
 
       - name: Run Django Migrations
         run: |
