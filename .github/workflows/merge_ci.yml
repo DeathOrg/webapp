@@ -38,6 +38,12 @@ jobs:
           zip -r webapp.zip . -x ".git/*" ".github/*" || exit 1
           mv webapp.zip app_artifact || exit 1
 
+      - name: Setup `packer`
+        uses: hashicorp/setup-packer@main
+        id: setup
+        with:
+          version: "latest"
+
       - name: Format Packer template
         run: |
           cd packer
@@ -46,14 +52,6 @@ jobs:
             echo "$output"
             exit 1
           fi
-
-      - name: Validate Packer
-        env:
-          PACKER_GITHUB_API_TOKEN: ${{ secrets.PACKER_GITHUB_API_TOKEN }}
-        run: |
-          cd packer
-          packer init webapp.pkr.hcl
-          packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl
 
       - name: Build app image
         run: |
