@@ -9,11 +9,6 @@ from dotenv import load_dotenv
 dot_env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', '.env')
 load_dotenv(dot_env_path)
 
-# paths = [os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', file) for file in ['.env']]
-# Load environment variables from all files
-# [load_dotenv(path) for path in paths]
-
-
 class Logger:
     def __init__(self):
         self.logger = None
