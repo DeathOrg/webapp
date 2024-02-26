@@ -2,15 +2,15 @@ name: Build and Image Creation
 
 on:
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
-    name: Build and deploy webapp
+    name: Webapp Build and Image Creation
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: [ 3.9 ]
     steps:
       - uses: actions/checkout@v3
 
@@ -22,7 +22,7 @@ jobs:
       - name: Google auth
         uses: google-github-actions/auth@v2
         with:
-            credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+          credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
