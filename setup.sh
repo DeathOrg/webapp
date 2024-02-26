@@ -20,10 +20,10 @@ if python3.9 manage.py makemigrations myapp --check | grep -q "No changes detect
     echo "No pending migrations found."
 else
     # SQL query to delete migration records for the myapp app
-    SQL_QUERY="DELETE FROM django_migrations WHERE app='myapp';"
+    SQL_QUERY="DELETE FROM $DATABASE_NAME.django_migrations WHERE app='myapp';"
 
     # Execute the SQL query using MySQL command line client
-    mysql -u"$DATABASE_USER" -p"$DATABASE_PASSWORD" -h "$DATABASE_HOST" "$DATABASE_NAME" -e "$SQL_QUERY"
+    mysql -h "$DATABASE_HOST" -u"$DATABASE_USER" -p"$DATABASE_PASSWORD" "$DATABASE_NAME" -e "$SQL_QUERY"
 
     # Check if the command executed successfully
     if [ $? -eq 0 ]; then
