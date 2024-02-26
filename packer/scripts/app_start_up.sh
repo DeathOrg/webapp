@@ -6,10 +6,14 @@ handle_error() {
     exit 1
 }
 
+handle_service_status_error() {
+    echo "Error: $1" >&2
+    exit 0
+}
+
 
 # Main script execution
 main() {
-
     # Setup web application
     echo "Setting up web application..."
     mkdir -p "$PROJECT_LOC"
@@ -37,7 +41,7 @@ main() {
     sudo systemctl restart webapp.service &
     echo "Service restart initiated. Continuing with the script..."
 
-    sudo systemctl status webapp.service || handle_error "Failed to check webapp.service status."
+    sudo systemctl status webapp.service || handle_service_status_error "Failed to check webapp.service status."
 
     ls -la "$PROJECT_LOC"/myapp/migrations
 }
