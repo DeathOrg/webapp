@@ -35,12 +35,6 @@ main() {
     sudo systemctl daemon-reload || handle_error "Failed to reload systemd."
     sudo systemctl enable webapp.service || handle_error "Failed to enable webapp.service."
 
-    # Restart the webapp service in the background and continue
-    sudo systemctl restart webapp.service &
-    echo "Service restart initiated. Continuing with the script..."
-
-    sudo systemctl status webapp.service || handle_service_status_error "Failed to check webapp.service status."
-
     ls -la "$PROJECT_LOC"/myapp/migrations
 }
 
