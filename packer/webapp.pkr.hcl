@@ -136,10 +136,6 @@ build {
   provisioner "shell" {
     script = "scripts/app_start_up.sh"
     environment_vars = [
-      "MYSQL_ROOT_PASSWORD=${var.mysql_root_password}",
-      "DATABASE_NAME=${var.mysql_database_name}",
-      "DATABASE_USER=${var.mysql_user}",
-      "DATABASE_PASSWORD=${var.mysql_user_password}",
       "PROJECT_LOC=/home/${var.ssh_username}/cloud/webapp"
     ]
   }
