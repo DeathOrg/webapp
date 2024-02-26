@@ -14,7 +14,7 @@ sudo yum update -y || handle_error "Failed to update system packages."
 sudo yum upgrade -y
 
 echo "Install mysql client..."
-yum install mysql
+yum install mysql -y
 
 # Install Python 3.9
 echo "Installing Python 3.9..."
