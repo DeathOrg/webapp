@@ -21,8 +21,6 @@ main() {
     chmod +x $PROJECT_LOC/setup.sh
     sudo mv /tmp/webapp.service /etc/systemd/system/webapp.service
 
-    echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> "$PROJECT_LOC"/config/.env
-
     rm -rf /home/csye6225/webapp* __MACOSX
     rm -rf /home/csye6225/cloud/__MACOSX
     rm -rf "$PROJECT_LOC"/app_artifact
