@@ -30,8 +30,6 @@ main() {
     chmod +x "$PROJECT_LOC"/setup.sh
     sudo setenforce 0
 
-    "$PROJECT_LOC"/setup.sh "$PROJECT_LOC"
-
     sudo systemctl daemon-reload || handle_error "Failed to reload systemd."
     sudo systemctl enable webapp.service || handle_error "Failed to enable webapp.service."
 
@@ -40,8 +38,6 @@ main() {
     echo "Service restart initiated. Continuing with the script..."
 
     sudo systemctl status webapp.service || handle_error "Failed to check webapp.service status."
-
-    sleep 150
 
     ls -la "$PROJECT_LOC"/myapp/migrations
 }
