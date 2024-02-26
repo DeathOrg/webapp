@@ -21,14 +21,6 @@ sudo yum install -y python39 || handle_error "Failed to install Python 3.9."
 echo "Installing pip for Python 3.9..."
 sudo yum install -y python39-pip || handle_error "Failed to install pip for Python 3.9."
 
-# Install MySQL development packages
-echo "Installing MySQL development packages..."
-sudo dnf install -y mysql-devel || handle_error "Failed to install MySQL development packages."
-
-# Install MySQL server
-echo "Installing MySQL server..."
-sudo yum install -y mysql-server || handle_error "Failed to install MySQL server."
-
 # Install Python and MySQL development packages
 echo "Installing Python and MySQL development packages..."
 sudo yum install -y python39-devel mysql-devel || handle_error "Failed to install Python and MySQL development packages."
