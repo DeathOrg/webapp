@@ -37,6 +37,7 @@ jobs:
           cp packer/scripts/requirements.txt requirements || exit 1
           zip -r webapp.zip . -x ".git/*" ".github/*" || exit 1
           mv webapp.zip app_artifact || exit 1
+          echo "hello"
 
       - name: Setup `packer`
         uses: hashicorp/setup-packer@main
