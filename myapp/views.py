@@ -10,82 +10,214 @@ import json
 
 def healthz(request):
     try:
-        logger.info('Healthz endpoint accessed.')
         if request.method == 'GET':
             if request.body:
-                logger.error('Bad request body received for healthz endpoint.')
+                logger.error(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="healthz",
+                    event="bad_request_body",
+                    message="Bad request, body received for healthz endpoint."
+                )
                 return HttpResponseBadRequest(status=400)
             elif request.GET:
-                logger.error('Bad query parameter received for healthz endpoint.')
+                logger.error(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="healthz",
+                    event="bad_query_parameter",
+                    message="Bad query parameter received for healthz endpoint."
+                )
                 return HttpResponseBadRequest(status=400)
             else:
+                logger.info(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="healthz",
+                    event="service_health_check",
+                    message="Service is healthy."
+                )
                 return HttpResponse(status=200)
         else:
-            logger.error('Method not allowed for healthz endpoint.')
+            logger.error(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="healthz",
+                event="method_not_allowed",
+                message="Method not allowed for healthz endpoint."
+            )
             return HttpResponseNotAllowed(['GET'])
     except Exception as e:
-        logger.error(f"An error occurred while processing request body: {e}")
+        logger.error(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="healthz",
+            event="error_processing_healthz",
+            message="An error occurred while processing healthz request.",
+            exception=str(e)
+        )
         return HttpResponseBadRequest(status=400)
 
 
 def ping(request):
     try:
-        logger.info('Ping endpoint accessed.')
+        logger.info(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="ping",
+            event="ping_accessed",
+            message="Ping endpoint accessed."
+        )
         if request.method == 'GET':
             if request.body:
-                logger.error('Bad request body received for ping endpoint.')
+                logger.error(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="ping",
+                    event="bad_request_body",
+                    message="Bad request body received for ping endpoint."
+                )
                 return HttpResponseBadRequest(status=400)
             elif request.GET:
-                logger.error('Bad query parameter received for ping endpoint.')
+                logger.error(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="ping",
+                    event="bad_query_parameter",
+                    message="Bad query parameter received for ping endpoint."
+                )
                 return HttpResponseBadRequest(status=400)
             else:
                 return JsonResponse({'message': 'pong'}, status=200)
         else:
+            logger.error(
+                event="method_not_allowed",
+                message=f"Method '{request.method}' not allowed for endpoint '{request.path}'.",
+                method=request.method,
+                request_id=request.request_id,
+                path=request.path,
+                user_agent=request.headers.get('User-Agent')
+            )
             return HttpResponseNotAllowed(['GET'])
     except Exception as e:
-        logger.error(f"An error occurred while processing request body: {e}")
+        logger.error(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="ping",
+            event="error_processing_ping",
+            message="An error occurred while processing ping request.",
+            exception=str(e)
+        )
         return HttpResponseBadRequest(status=400)
 
 
 def create_user(request):
     try:
         if request.method == 'POST':
-            logger.info('Create user endpoint accessed.')
+            logger.info(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="create_user",
+                event="create_user_attempt",
+                message="Create user endpoint accessed."
+            )
             try:
                 request_data = json.loads(request.body)
             except json.JSONDecodeError as e:
-                logger.error(f"Error decoding JSON: {e}")
+                logger.error(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="create_user",
+                    event="json_decode_error",
+                    message="Error decoding JSON in create_user.",
+                    exception=str(e)
+                )
                 return HttpResponseBadRequest(status=400)
-
-            logger.info(f'Request data: {request_data}')
 
             # Check if the user already exists
             if User.objects.filter(username=request_data.get('username')).exists():
-                logger.error('User with this username already exists.')
+                logger.error(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="create_user",
+                    event="user_already_exists",
+                    message="User with this username already exists.",
+                    username=request_data.get('username')
+                )
                 return JsonResponse({'error': 'User with this username already exists.'}, status=400)
 
             serializer = CreateUserSerializer(data=request_data)
             if serializer.is_valid():
-                logger.info('Serializer is valid.')
                 user = serializer.save()
-                logger.info('User object created successfully.')
-                logger.info(serializer.data)
+                logger.info(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="create_user",
+                    event="user_created",
+                    message="User created successfully.",
+                    user_id=user.id,
+                    username=user.username,
+                )
                 return JsonResponse(serializer.data, status=201)
             else:
-                logger.error(f'Serializer errors: {serializer.errors}')
+                logger.error(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="create_user",
+                    event="serializer_errors",
+                    message="Serializer errors in create_user.",
+                    errors=serializer.errors,
+                    request_data=request_data
+                )
                 return HttpResponseBadRequest(status=400)
         else:
+            logger.error(
+                event="method_not_allowed",
+                message=f"Method '{request.method}' not allowed for endpoint '{request.path}'.",
+                method=request.method,
+                request_id=request.request_id,
+                path=request.path,
+                user_agent=request.headers.get('User-Agent')
+            )
             return HttpResponseNotAllowed(['POST'])
     except Exception as e:
-        logger.error(f"Some error occurred: {e}")
+        logger.error(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="create_user",
+            event="create_user_error",
+            message="An error occurred while processing create user request.",
+            exception=str(e)
+        )
         try:
             if "Table 'webApp.myapp_user' doesn't exist" in str(e):
-                logger.error(f"Database error occurred while processing create user request: {e}")
+                logger.error(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="create_user",
+                    event="database_error",
+                    message="Database error occurred while processing create user request.",
+                    exception=str(e)
+                )
                 return JsonResponse({'error': 'An internal server error occurred. Please try again later.'},
                                     status=500)
-        except Exception as eee:
-            logger.error(f"something bad happened while processing the error: {eee}")
-        logger.error(f"An error occurred while processing create user request: {e}")
+        except Exception as err:
+            logger.error(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="create_user",
+                event="error_processing_database_error",
+                message="Error processing database error in create_user.",
+                exception=str(err)
+            )
+        logger.error(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="create_user",
+            event="unknown_error",
+            message="An error occurred while processing create user request.",
+            exception=str(e)
+        )
         return HttpResponseBadRequest(status=400)
 
 
@@ -111,49 +243,125 @@ def get_user_from_credentials(request):
 def user_info(request):
     try:
         if request.method == 'GET' or request.method == 'PUT':
+            logger.info(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="user_info",
+                event="get_user_info_accessed",
+                message="Get user info endpoint accessed."
+
+            )
             user = get_user_from_credentials(request)
             if not user:
                 return HttpResponse(status=401)
 
             if request.method == 'GET':
                 if request.body:
-                    logger.error('Bad request body received for get user info endpoint.')
+                    logger.error(
+                        method=request.method,
+                        request_id=request.request_id,
+                        endpoint="user_info",
+                        event="bad_request_body",
+                        message="Bad request body received for get user info endpoint."
+                    )
                     return HttpResponseBadRequest(status=400)
                 elif request.GET:
-                    logger.error('Bad query parameter received for get user info endpoint.')
+                    logger.error(
+                        method=request.method,
+                        request_id=request.request_id,
+                        endpoint="user_info",
+                        event="bad_query_parameter",
+                        message="Bad query parameter received for get user info endpoint."
+                    )
                     return HttpResponseBadRequest(status=400)
                 else:
                     serializer = UserSerializer(user)
                     return JsonResponse(serializer.data, status=200)
             elif request.method == 'PUT':
                 if request.GET:
-                    logger.error('Bad query parameter received for update user info endpoint.')
+                    logger.error(
+                        method=request.method,
+                        request_id=request.request_id,
+                        endpoint="user_info",
+                        event="bad_query_parameter",
+                        message="Bad query parameter received for update user info endpoint."
+                    )
                     return HttpResponseBadRequest(status=400)
                 request_data = json.loads(request.body)
 
                 # Check if any unexpected keys are present in request_data
                 unexpected_keys = set(request_data.keys()) - {'first_name', 'last_name', 'password'}
                 if unexpected_keys:
-                    logger.error(f'Got unexpected keys: {unexpected_keys}')
+                    logger.error(
+                        method=request.method,
+                        request_id=request.request_id,
+                        endpoint="user_info",
+                        event="unexpected_keys",
+                        message="Got unexpected keys in update user info request.",
+                        unexpected_keys=unexpected_keys
+                    )
                     return HttpResponseBadRequest(status=400)
                 serializer = UpdateUserSerializer(user, data=request_data)
                 if serializer.is_valid():
                     serializer.save()
                     return HttpResponse(status=204)
                 else:
-                    logger.error(f'serializer.errors {serializer.errors}')
+                    logger.error(
+                        method=request.method,
+                        request_id=request.request_id,
+                        endpoint="user_info",
+                        event="serializer_errors",
+                        message="Serializer errors in update user info.",
+                        errors=serializer.errors
+                    )
                     return HttpResponseBadRequest(status=400)
 
         else:
+            logger.error(
+                event="method_not_allowed",
+                message=f"Method '{request.method}' not allowed for endpoint '{request.path}'.",
+                method=request.method,
+                request_id=request.request_id,
+                path=request.path,
+                user_agent=request.headers.get('User-Agent')
+            )
             return HttpResponseNotAllowed(['GET', 'PUT'])
     except Exception as e:
-        logger.error(f"Some error occurred: {e}")
+        logger.error(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="user_info",
+            event="error_processing_user_info",
+            message="An error occurred while processing user info request.",
+            exception=str(e)
+        )
         try:
             if "Table 'webApp.myapp_user' doesn't exist" in str(e):
-                logger.error(f"Database error occurred while processing user info request: {e}")
+                logger.error(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="user_info",
+                    event="database_error",
+                    message="Database error occurred while processing user info request.",
+                    exception=str(e)
+                )
                 return JsonResponse({'error': 'An internal server error occurred. Please try again later.'},
                                     status=500)
-        except Exception as eee:
-            logger.error(f"something bad happened while processing the error: {eee}")
-        logger.error(f"An error occurred while processing user info request: {e}")
+        except Exception as err:
+            logger.error(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="user_info",
+                event="error_processing_database_error",
+                message="Error processing database error in user_info.",
+                exception=str(err)
+            )
+        logger.error(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="user_info",
+            event="unknown_error",
+            message="An error occurred while processing user info request.",
+            exception=str(e)
+        )
         return HttpResponseBadRequest(status=400)
