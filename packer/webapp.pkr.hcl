@@ -136,7 +136,8 @@ build {
   provisioner "shell" {
     script = "scripts/app_start_up.sh"
     environment_vars = [
-      "PROJECT_LOC=/home/${var.ssh_username}/cloud/webapp"
+      "PROJECT_LOC=/home/${var.ssh_username}/cloud/webapp",
+      "LOG_DIR=/var/log/myapp"
     ]
   }
 }

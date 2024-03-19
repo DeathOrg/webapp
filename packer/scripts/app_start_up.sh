@@ -11,6 +11,21 @@ handle_service_status_error() {
     exit 0
 }
 
+create_log_dir(){
+  #create log dir
+    if [ ! -d "$LOG_DIR" ]; then
+        # Create the directory if it doesn't exist
+        sudo mkdir -p "$LOG_DIR"
+        echo "Created log directory: $LOG_DIR"
+
+        # Set appropriate permissions
+        sudo chown -R csye6225:csye6225 "$LOG_DIR"
+        sudo chmod 750 "$LOG_DIR"
+        echo "Set permissions for log directory: $LOG_DIR"
+    else
+        echo "Log directory already exists: $LOG_DIR"
+    fi
+}
 
 # Main script execution
 main() {
@@ -25,6 +40,8 @@ main() {
     rm -rf /home/csye6225/cloud/__MACOSX
     rm -rf "$PROJECT_LOC"/app_artifact
     rm -f "$PROJECT_LOC"/*.json
+
+    create_log_dir
 
     sudo chown csye6225:csye6225 "$PROJECT_LOC"/setup.sh
     sudo chown -R csye6225:csye6225 "$PROJECT_LOC"
