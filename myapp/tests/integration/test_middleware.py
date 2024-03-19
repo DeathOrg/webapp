@@ -34,5 +34,6 @@ class DatabaseCheckMiddlewareTest(TestCase):
         mock_cursor.side_effect = Exception('Database connection error')
         middleware = DatabaseCheckMiddleware(lambda req: HttpResponse())
         request = RequestFactory().get('/')
+        request.request_id = 'test_request_id'
         response = middleware(request)
         self.assertEqual(response.status_code, 503)
