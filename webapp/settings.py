@@ -75,7 +75,7 @@ REST_FRAMEWORK = {
 import structlog
 
 # Create the directory if it doesn't exist
-LOG_BASE_DIR = os.getenv('LOG_DIR', 'var/log')
+LOG_BASE_DIR = os.getenv('LOG_DIR', '/var/log')
 LOG_DIR = os.path.join(LOG_BASE_DIR, os.getenv('APP_NAME', 'myapp'))
 # os.makedirs(LOG_DIR, exist_ok=True)
 
