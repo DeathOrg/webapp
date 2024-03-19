@@ -249,7 +249,6 @@ def user_info(request):
                 endpoint="user_info",
                 event="get_user_info_accessed",
                 message="Get user info endpoint accessed."
-
             )
             user = get_user_from_credentials(request)
             if not user:
