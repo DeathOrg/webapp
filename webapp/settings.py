@@ -117,7 +117,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        '': {
+        'my-webapp': {
             'handlers': ['file'],
             'level': os.getenv('LOG_LEVEL', 'INFO'),
             'propagate': True,

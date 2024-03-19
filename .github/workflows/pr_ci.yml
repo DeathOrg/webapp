@@ -56,6 +56,10 @@ jobs:
           FLUSH PRIVILEGES;
           EOF
 
+      - name: Create log directory
+        run: |
+          mkdir -p /var/log/myapp
+
       - name: Run Django Migrations
         run: |
           python manage.py makemigrations
