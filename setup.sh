@@ -10,6 +10,8 @@ source "$project_loc"/config/.env || {
   echo "Error: Unable to load environment variables from config.env"
   exit 1
 }
+  /home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp
+
 
 # Change directory to project path
 cd "$PROJECT_PATH"
@@ -27,13 +29,8 @@ fi
 if python3.9 manage.py makemigrations myapp --check | grep -q "No changes detected"; then
     echo "No pending migrations found."
 else
-    # Check if the command executed successfully
-    if [ $? -eq 0 ]; then
-      echo "Migration records for myapp deleted successfully."
       python3.9 manage.py flush --no-input
       python3.9 manage.py makemigrations myapp
       python3.9 manage.py migrate
-    else
-      echo "Failed to delete migration records for myapp."
-    fi
+      echo "Migration done for myapp"
 fi
