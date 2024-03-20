@@ -1,4 +1,7 @@
 import os
+import structlog
+
+from utils.structlog_config import configure_structlog
 
 # Django settings
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -12,7 +15,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    # 'django.contrib.staticfiles',
     'myapp',
 ]
 
@@ -26,7 +28,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'myapp.middleware.RequestIDMiddleware',
     'myapp.middleware.CustomHeadersMiddleware',
     'myapp.middleware.DatabaseCheckMiddleware',
@@ -72,34 +73,9 @@ REST_FRAMEWORK = {
     # Other DRF settings...
 }
 
-import structlog
-
-# Create the directory if it doesn't exist
+# Get log related details
 LOG_BASE_DIR = os.getenv('LOG_DIR', '/var/log')
 LOG_DIR = os.path.join(LOG_BASE_DIR, os.getenv('APP_NAME', 'myapp'))
-# os.makedirs(LOG_DIR, exist_ok=True)
-
-# Custom processor to rename the 'level' field to 'severity'
-def rename_level_to_severity(logger, method_name, event_dict):
-    if 'level' in event_dict:
-        event_dict['severity'] = event_dict.pop('level')
-    return event_dict
-
-# Configure structlog
-def configure_structlog():
-    structlog.configure(
-        processors=[
-            structlog.stdlib.add_log_level,
-            rename_level_to_severity,
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.ExceptionPrettyPrinter(),
-            structlog.processors.JSONRenderer(),
-        ],
-        context_class=dict,
-        logger_factory=structlog.stdlib.LoggerFactory(),
-        wrapper_class=structlog.stdlib.BoundLogger,
-        cache_logger_on_first_use=True,
-    )
 
 configure_structlog()
 
@@ -117,7 +93,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'my-webapp': {
+        '': {
             'handlers': ['file'],
             'level': os.getenv('LOG_LEVEL', 'INFO'),
             'propagate': True,

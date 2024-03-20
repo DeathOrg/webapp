@@ -235,8 +235,22 @@ def get_user_from_credentials(request):
         if check_password(password, user.password):
             return user
         else:
+            logger.warn(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="user_info",
+                event="Fetching user detail failed",
+                message=f"Authorisation failure for user: {username}"
+            )
             return None
     except User.DoesNotExist:
+        logger.warn(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="user_info",
+            event="Fetching user detail failed",
+            message=f"User: {username} not found."
+        )
         return None
 
 
@@ -291,13 +305,12 @@ def user_info(request):
                 # Check if any unexpected keys are present in request_data
                 unexpected_keys = set(request_data.keys()) - {'first_name', 'last_name', 'password'}
                 if unexpected_keys:
-                    logger.error(
+                    logger.warn(
                         method=request.method,
                         request_id=request.request_id,
                         endpoint="user_info",
                         event="unexpected_keys",
-                        message="Got unexpected keys in update user info request.",
-                        unexpected_keys=unexpected_keys
+                        message=f"Failed to update to user info for user: {user.username}",
                     )
                     return HttpResponseBadRequest(status=400)
                 serializer = UpdateUserSerializer(user, data=request_data)
@@ -310,7 +323,7 @@ def user_info(request):
                         request_id=request.request_id,
                         endpoint="user_info",
                         event="serializer_errors",
-                        message="Serializer errors in update user info.",
+                        message=f"Failed to update to user info for user: {user.username}",
                         errors=serializer.errors
                     )
                     return HttpResponseBadRequest(status=400)
@@ -318,7 +331,7 @@ def user_info(request):
         else:
             logger.error(
                 event="method_not_allowed",
-                message=f"Method '{request.method}' not allowed for endpoint '{request.path}'.",
+                message=f"Method '{request.method}' not allowed for '{request.path}'.",
                 method=request.method,
                 request_id=request.request_id,
                 path=request.path,
