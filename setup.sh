@@ -10,8 +10,6 @@ source "$project_loc"/config/.env || {
   echo "Error: Unable to load environment variables from config.env"
   exit 1
 }
-  /home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp
-
 
 # Change directory to project path
 cd "$PROJECT_PATH"
