@@ -51,12 +51,10 @@ variable "disk_size" {
 variable "app_artifact_path" {
   type    = string
   default = "../app_artifact/webapp.zip"
-  #  default = "/Users/sourabhkumar/Downloads/webapp.zip"
 }
 
 variable "requirement_path" {
-  type = string
-  #  default = "../app_artifact/webapp.zip"
+  type    = string
   default = "scripts/requirements.txt"
 }
 
@@ -80,7 +78,6 @@ variable "mysql_user_password" {
   sensitive = true
 }
 
-
 source "googlecompute" "webapp" {
   project_id          = var.gcp_project_id
   source_image_family = var.source_image_family
@@ -88,38 +85,31 @@ source "googlecompute" "webapp" {
   zone                = var.zone
   image_name          = "${var.image_family}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
   image_family        = var.image_family
-
-  disk_type = var.disk_type
-  disk_size = var.disk_size
+  disk_type           = var.disk_type
+  disk_size           = var.disk_size
 }
 
 build {
-  sources = [
-    "source.googlecompute.webapp"
-  ]
+  sources = ["source.googlecompute.webapp"]
 
   provisioner "shell" {
     script = "scripts/create_user.sh"
   }
 
-  # Copy application artifacts and configuration
   provisioner "file" {
     source      = var.requirement_path
     destination = "/tmp/requirements.txt"
   }
 
-  # Install dependencies
   provisioner "shell" {
     script = "scripts/install_dependencies.sh"
   }
 
-  # Copy application artifacts and configuration
   provisioner "file" {
     source      = var.app_artifact_path
     destination = "/home/${var.ssh_username}/webapp.zip"
   }
 
-  # Unzip and set permissions
   provisioner "shell" {
     inline = [
       "cd /home/${var.ssh_username}",
@@ -131,6 +121,15 @@ build {
   provisioner "file" {
     source      = "./webapp.service"
     destination = "/tmp/webapp.service"
+  }
+
+  provisioner "file" {
+    source      = "./config.yaml"
+    destination = "/tmp/config.yaml"
+  }
+
+  provisioner "shell" {
+    script = "scripts/setup_ops_agent.sh"
   }
 
   provisioner "shell" {
