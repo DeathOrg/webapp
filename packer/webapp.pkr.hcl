@@ -124,7 +124,7 @@ build {
   }
 
   provisioner "file" {
-    source      = "./config.yaml"
+    source      = "scripts/config.yaml"
     destination = "/tmp/config.yaml"
   }
 
