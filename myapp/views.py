@@ -10,6 +10,13 @@ import json
 
 def healthz(request):
     try:
+        logger.debug(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="healthz",
+            event="health check requested",
+            message="service health check."
+        )
         if request.method == 'GET':
             if request.body:
                 logger.error(
@@ -61,7 +68,7 @@ def healthz(request):
 
 def ping(request):
     try:
-        logger.info(
+        logger.debug(
             method=request.method,
             request_id=request.request_id,
             endpoint="ping",
@@ -88,6 +95,13 @@ def ping(request):
                 )
                 return HttpResponseBadRequest(status=400)
             else:
+                logger.info(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="ping",
+                    event="Ping successful",
+                    message="service is healthy and ping successful."
+                )
                 return JsonResponse({'message': 'pong'}, status=200)
         else:
             logger.error(
@@ -113,14 +127,14 @@ def ping(request):
 
 def create_user(request):
     try:
+        logger.debug(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="create_user",
+            event="create_user_attempt",
+            message="Create user endpoint accessed."
+        )
         if request.method == 'POST':
-            logger.info(
-                method=request.method,
-                request_id=request.request_id,
-                endpoint="create_user",
-                event="create_user_attempt",
-                message="Create user endpoint accessed."
-            )
             try:
                 request_data = json.loads(request.body)
             except json.JSONDecodeError as e:
@@ -155,7 +169,6 @@ def create_user(request):
                     endpoint="create_user",
                     event="user_created",
                     message="User created successfully.",
-                    user_id=user.id,
                     username=user.username,
                 )
                 return JsonResponse(serializer.data, status=201)
@@ -256,14 +269,14 @@ def get_user_from_credentials(request):
 
 def user_info(request):
     try:
+        logger.debug(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="user_info",
+            event="get_user_info_accessed",
+            message="Get user info endpoint accessed."
+        )
         if request.method == 'GET' or request.method == 'PUT':
-            logger.info(
-                method=request.method,
-                request_id=request.request_id,
-                endpoint="user_info",
-                event="get_user_info_accessed",
-                message="Get user info endpoint accessed."
-            )
             user = get_user_from_credentials(request)
             if not user:
                 return HttpResponse(status=401)
@@ -289,6 +302,14 @@ def user_info(request):
                     return HttpResponseBadRequest(status=400)
                 else:
                     serializer = UserSerializer(user)
+                    logger.info(
+                        method=request.method,
+                        request_id=request.request_id,
+                        endpoint="user_info",
+                        user_name=user.username,
+                        event="success event ",
+                        message="user data fetched successfully."
+                    )
                     return JsonResponse(serializer.data, status=200)
             elif request.method == 'PUT':
                 if request.GET:
@@ -316,6 +337,14 @@ def user_info(request):
                 serializer = UpdateUserSerializer(user, data=request_data)
                 if serializer.is_valid():
                     serializer.save()
+                    logger.info(
+                        method=request.method,
+                        request_id=request.request_id,
+                        endpoint="user_info",
+                        user_name=user.username,
+                        event="success event ",
+                        message="user data updated successfully."
+                    )
                     return HttpResponse(status=204)
                 else:
                     logger.error(
