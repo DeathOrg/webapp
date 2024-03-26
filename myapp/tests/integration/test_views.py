@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from myapp.models import User
 
+
 class HealthzEndpointTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -73,6 +74,8 @@ class UserInfoEndpointTest(TestCase):
         response = self.client.post(reverse('create_user'), data=json.dumps(user_data), content_type='application/json')
         self.assertEqual(response.status_code, 201)
         self.user = User.objects.get(username=user_data['username'])
+        self.user.is_verified = True
+        self.user.save()
 
     def test_user_info_endpoint_get_without_credentials(self):
         response = self.client.get(reverse('user_info'))
@@ -97,7 +100,8 @@ class UserInfoEndpointTest(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_user_info_endpoint_put_without_credentials(self):
-        response = self.client.put(reverse('user_info'), data={'first_name': 'John', 'last_name': 'Doe'}, content_type='application/json')
+        response = self.client.put(reverse('user_info'), data={'first_name': 'John', 'last_name': 'Doe'},
+                                   content_type='application/json')
         self.assertEqual(response.status_code, 401)
 
     def test_user_info_endpoint_invalid_method(self):
@@ -114,4 +118,5 @@ class UserInfoEndpointTest(TestCase):
         username = 'test@example.com'
         password = 'password123'
         auth_header = 'Basic ' + b64encode(f'{username}:{password}'.encode('utf-8')).decode('utf-8')
-        return self.client.put(reverse('user_info'), data=json.dumps(data), content_type='application/json', HTTP_AUTHORIZATION=auth_header)
+        return self.client.put(reverse('user_info'), data=json.dumps(data), content_type='application/json',
+                               HTTP_AUTHORIZATION=auth_header)

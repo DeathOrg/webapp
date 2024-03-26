@@ -1,9 +1,13 @@
 import base64
+import hashlib
+import os
+import secrets
 
 from django.contrib.auth.hashers import check_password
+from django.utils import timezone
 from django.http import HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponse, JsonResponse
 
-from .models import User
+from .models import User, UserVerification
 from .serializers import UserSerializer, CreateUserSerializer, UpdateUserSerializer
 import json
 
@@ -124,6 +128,50 @@ def ping(request):
         )
         return HttpResponseBadRequest(status=400)
 
+# def generate_unique_verification_code(username):
+#     """
+#     Generates a unique verification code for the given username.
+#
+#     This function uses the secrets module to generate a cryptographically
+#     secure random string as the verification code.
+#
+#     Args:
+#         username (str): The username of the user for whom to generate the code.
+#
+#     Returns:
+#         str: The unique verification code.
+#     """
+#
+#     # Securely generate a random string with length 32 (can be adjusted)
+#     verification_code = secrets.token_urlsafe(32)
+#     # Combine username (hashed for security) and random string
+#     combined_string = f"{username}-{hashlib.sha256(username.encode('utf-8')).hexdigest()}"
+#     # Encode the combined string and verification code for URL safety
+#     return f"{base64.urlsafe_b64encode(combined_string.encode('utf-8')).decode('utf-8')}/{verification_code}"
+
+
+# def track_email(verification_link, username):
+#     """
+#     Tracks information about the sent verification email.
+#
+#     This function attempts to create a new `UserVerification` model entry
+#     with the provided username and verification link. It handles potential
+#     errors like user not found.
+#
+#     Args:
+#         username (str): The username of the user.
+#         verification_link (str): The verification link sent to the user.
+#     """
+#
+#     try:
+#         user = User.objects.get(username=username)
+#         verification_obj = UserVerification.objects.create(
+#             user=user, verification_code=verification_link.split('/')[1]  # Extract code from link
+#         )
+#         print(f'Email sent to {username} tracked with verification object: {verification_obj}')
+#     except Exception as e:
+#         print(f'An error occurred while tracking email: {e}')
+
 
 def create_user(request):
     try:
@@ -149,16 +197,40 @@ def create_user(request):
                 return HttpResponseBadRequest(status=400)
 
             # Check if the user already exists
-            if User.objects.filter(username=request_data.get('username')).exists():
-                logger.error(
-                    method=request.method,
-                    request_id=request.request_id,
-                    endpoint="create_user",
-                    event="user_already_exists",
-                    message="User with this username already exists.",
-                    username=request_data.get('username')
-                )
-                return JsonResponse({'error': 'User with this username already exists.'}, status=400)
+            user = User.objects.filter(username=request_data.get('username')).first()
+            if user:
+                if user.is_verified:
+                    logger.error(
+                        method=request.method,
+                        request_id=request.request_id,
+                        endpoint="create_user",
+                        event="user_already_exists",
+                        message="User with this username already exists.",
+                        username=request_data.get('username')
+                    )
+                    return JsonResponse({'error': 'User with this username already exists.'}, status=400)
+                else:
+                    hostname = os.getenv('DOMAIN_NAME')
+                    verification_api = "v1/verify"
+
+                    pubsub_topic = "verify_email"
+                    pubsub_msg = {
+                        "username": user.username,
+                        "hostname": hostname,
+                        "verification_api": verification_api
+                    }
+
+                    # verification_code = generate_unique_verification_code(user.username)
+                    # verification_link = f"http://{hostname}:8000/{verification_api}?code={verification_code}"
+                    #
+                    # print(f"verification_link: {verification_link}")
+                    # track_email(verification_code, user.username)
+
+                    msg_publisher.send_message(pubsub_topic, pubsub_msg)
+                    return JsonResponse({
+                        'error': 'User with this username already exists. Please verify your email to activate your '
+                                 'account.'},
+                        status=400)
 
             serializer = CreateUserSerializer(data=request_data)
             if serializer.is_valid():
@@ -171,7 +243,21 @@ def create_user(request):
                     message="User created successfully.",
                     username=user.username,
                 )
-                return JsonResponse(serializer.data, status=201)
+                hostname = os.getenv('DOMAIN_NAME')
+                verification_api = "v1/verify"
+
+                pubsub_topic = "verify_email"
+                pubsub_msg = {
+                    "username": user.username,
+                    "hostname": hostname,
+                    "verification_api": verification_api
+                }
+                msg_publisher.send_message(pubsub_topic, pubsub_msg)
+
+                return JsonResponse(
+                    {'message': 'User created successfully. Please verify your email to activate your account.',
+                     'data': serializer.data}, status=201)
+
             else:
                 logger.error(
                     method=request.method,
@@ -237,7 +323,7 @@ def create_user(request):
 def get_user_from_credentials(request):
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Basic '):
-        return None
+        return None, "Invalid Request, Need Authorization header"
 
     encoded_credentials = auth_header[len('Basic '):]
     decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
@@ -246,25 +332,38 @@ def get_user_from_credentials(request):
     try:
         user = User.objects.get(username=username)
         if check_password(password, user.password):
-            return user
+            if not user.is_verified:
+                msg = f"Email verification required to access this API. for user: {username}"
+                logger.warn(
+                    method=request.method,
+                    request_id=request.request_id,
+                    endpoint="user_info",
+                    event="Fetching user detail failed",
+                    message=msg
+                )
+                return None, msg
+            return user, f"Authorisation successful for user: {username}"
         else:
+            msg = f"Authorisation failure for user: {username}"
             logger.warn(
                 method=request.method,
                 request_id=request.request_id,
                 endpoint="user_info",
                 event="Fetching user detail failed",
-                message=f"Authorisation failure for user: {username}"
+                message=msg
             )
-            return None
+            return None, msg
+
     except User.DoesNotExist:
+        msg = f"User: {username} not found."
         logger.warn(
             method=request.method,
             request_id=request.request_id,
             endpoint="user_info",
             event="Fetching user detail failed",
-            message=f"User: {username} not found."
+            message=msg
         )
-        return None
+        return None, msg
 
 
 def user_info(request):
@@ -277,9 +376,9 @@ def user_info(request):
             message="Get user info endpoint accessed."
         )
         if request.method == 'GET' or request.method == 'PUT':
-            user = get_user_from_credentials(request)
+            user, msg = get_user_from_credentials(request)
             if not user:
-                return HttpResponse(status=401)
+                return JsonResponse({'error': msg}, status=401)
 
             if request.method == 'GET':
                 if request.body:
@@ -406,3 +505,98 @@ def user_info(request):
             exception=str(e)
         )
         return HttpResponseBadRequest(status=400)
+
+
+def verify_user(request):
+    try:
+        logger.debug(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="verify_user",
+            event="verify_user_accessed",
+            message="Verify user endpoint accessed."
+        )
+        verification_code = request.GET.get('code')
+
+        if not verification_code:
+            logger.error(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="verify_user",
+                event="verification_code_missing",
+                message="Verification code is missing."
+            )
+            return JsonResponse({'error': 'Verification code is missing'}, status=400)
+
+        try:
+            verification_code = verification_code.split('/')[1]
+            verification_obj = UserVerification.objects.get(verification_code=verification_code)
+        except UserVerification.DoesNotExist:
+            logger.error(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="verify_user",
+                event="invalid_verification_code",
+                message="Invalid verification code."
+            )
+            return JsonResponse({'error': 'Invalid verification code'}, status=404)
+        except Exception as e:
+            logger.error(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="verify_user",
+                event="invalid_verification_code",
+                message="Invalid verification code.",
+                error=str(e)
+            )
+            return JsonResponse({'error': 'Invalid verification code'}, status=404)
+
+        if verification_obj.expires_at < timezone.now():
+            logger.error(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="verify_user",
+                event="expired_verification_link",
+                message="Verification link has expired."
+            )
+            return JsonResponse({'error': 'Verification link has expired'}, status=400)
+
+        if verification_obj.is_used:
+            logger.error(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="verify_user",
+                event="check validity of verification link",
+                message="Verification link has been used."
+            )
+            return JsonResponse({'error': 'Verification link has expired'}, status=400)
+        verification_obj.is_used = True
+        verification_obj.save()
+
+        user = verification_obj.user
+        user.is_verified = True
+        user.save()
+
+        # verification_obj.delete()  # Optional: Delete verification entry after successful use
+
+        logger.info(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="verify_user",
+            user_name=user.username,
+            event="user_verified",
+            message="User verified successfully."
+        )
+
+        return JsonResponse({'success': 'User verified successfully'})
+    except Exception as e:
+        logger.error(
+            method=request.method,
+            request_id=request.request_id,
+            endpoint="verify_user",
+            event="error_processing_verification",
+            message="An error occurred while processing user verification.",
+            exception=str(e)
+        )
+        return JsonResponse({'error': 'An error occurred while processing verification. Please try again later.'},
+                            status=500)

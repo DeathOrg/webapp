@@ -1,6 +1,7 @@
 # models.py
 import uuid
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
@@ -36,6 +37,9 @@ class User(AbstractBaseUser):
     account_created = models.DateTimeField(auto_now_add=True)
     account_updated = models.DateTimeField(auto_now=True)
 
+    # Field to check if user is email verified or not
+    is_verified = models.BooleanField(default=False)
+
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
@@ -43,3 +47,15 @@ class User(AbstractBaseUser):
 
     def __str__(self):
         return self.username
+
+
+class UserVerification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    verification_code = models.CharField(max_length=255)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(default=timezone.now() + timezone.timedelta(minutes=2))  # Expires in 2 minutes
+    is_used = models.BooleanField(default=False)
+
+
+    def __str__(self):
+        return f"Verification for user {self.user.username}"
