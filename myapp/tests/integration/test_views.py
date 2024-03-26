@@ -1,5 +1,6 @@
 import json
 from base64 import b64encode
+from unittest.mock import patch
 
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -38,13 +39,15 @@ class CreateUserEndpointTest(TestCase):
     def setUp(self):
         self.client = Client()
 
-    def test_create_user_endpoint_success(self):
+    @patch('utils.msg_publisher.PubSubMessagePublisher.send_message')
+    def test_create_user_endpoint_success(self, mock_send_message):
         user_data = {
             'username': 'test@example.com',
             'password': 'password123',
             'first_name': 'first',
             'last_name': 'last'
         }
+
         response = self.client.post(reverse('create_user'), data=json.dumps(user_data), content_type='application/json')
         self.assertEqual(response.status_code, 201)
 
@@ -63,7 +66,8 @@ class CreateUserEndpointTest(TestCase):
 
 
 class UserInfoEndpointTest(TestCase):
-    def setUp(self):
+    @patch('utils.msg_publisher.PubSubMessagePublisher.send_message')
+    def setUp(self, mock_send_message):
         self.client = Client()
         user_data = {
             'username': 'test@example.com',
