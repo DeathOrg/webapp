@@ -47,7 +47,7 @@ class PubSubMessagePublisher:
             logger.error(
                 event="Topic publishing failure",
                 message=f"Failed to publish message to topic: {topic_name}",
-                username=message["user_name"],
+                username=message["username"],
                 error=str(e)
             )
             raise
