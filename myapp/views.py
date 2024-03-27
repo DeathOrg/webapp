@@ -575,20 +575,30 @@ def verify_user(request):
         verification_obj.is_used = True
         verification_obj.save()
 
-        user = verification_obj.user
-        user.is_verified = True
-        user.save()
-
         # verification_obj.delete()  # Optional: Delete verification entry after successful use
 
-        logger.info(
-            method=request.method,
-            request_id=request.request_id,
-            endpoint="verify_user",
-            user_name=user.username,
-            event="user_verified",
-            message="User verified successfully."
-        )
+        user_id = verification_obj.user_id
+        user = User.objects.filter(user_id=user_id).first()
+        if user:
+            user.is_verified = True
+            user.save()
+            logger.info(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="verify_user",
+                user_name=user.username,
+                event="user_verified",
+                message="User verified successfully."
+            )
+        else:
+            logger.error(
+                method=request.method,
+                request_id=request.request_id,
+                endpoint="verify_user",
+                user_name=user.username,
+                event="user not found",
+                message="User verification failed."
+            )
 
         return JsonResponse({'success': 'User verified successfully'})
     except Exception as e:
