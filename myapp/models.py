@@ -50,7 +50,7 @@ class User(AbstractBaseUser):
 
 
 class UserVerification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.UUIDField(default=uuid.uuid4)
     verification_code = models.CharField(max_length=255)
     sent_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(default=timezone.now() + timezone.timedelta(minutes=2))  # Expires in 2 minutes
@@ -58,4 +58,4 @@ class UserVerification(models.Model):
 
 
     def __str__(self):
-        return f"Verification for user {self.user.username}"
+        return f"Verification for user {self.user_id}"
