@@ -65,7 +65,7 @@ def healthz(request):
             endpoint="healthz",
             event="error_processing_healthz",
             message="An error occurred while processing healthz request.",
-            exception=str(e)
+            error=str(e)
         )
         return HttpResponseBadRequest(status=400)
 
@@ -124,7 +124,7 @@ def ping(request):
             endpoint="ping",
             event="error_processing_ping",
             message="An error occurred while processing ping request.",
-            exception=str(e)
+            error=str(e)
         )
         return HttpResponseBadRequest(status=400)
 
@@ -192,7 +192,7 @@ def create_user(request):
                     endpoint="create_user",
                     event="json_decode_error",
                     message="Error decoding JSON in create_user.",
-                    exception=str(e)
+                    error=str(e)
                 )
                 return HttpResponseBadRequest(status=400)
 
@@ -286,7 +286,7 @@ def create_user(request):
             endpoint="create_user",
             event="create_user_error",
             message="An error occurred while processing create user request.",
-            exception=str(e)
+            error=str(e)
         )
         try:
             if "Table 'webApp.myapp_user' doesn't exist" in str(e):
@@ -296,7 +296,7 @@ def create_user(request):
                     endpoint="create_user",
                     event="database_error",
                     message="Database error occurred while processing create user request.",
-                    exception=str(e)
+                    error=str(e)
                 )
                 return JsonResponse({'error': 'An internal server error occurred. Please try again later.'},
                                     status=500)
@@ -307,7 +307,7 @@ def create_user(request):
                 endpoint="create_user",
                 event="error_processing_database_error",
                 message="Error processing database error in create_user.",
-                exception=str(err)
+                error=str(err)
             )
         logger.error(
             method=request.method,
@@ -315,7 +315,7 @@ def create_user(request):
             endpoint="create_user",
             event="unknown_error",
             message="An error occurred while processing create user request.",
-            exception=str(e)
+            error=str(e)
         )
         return HttpResponseBadRequest(status=400)
 
@@ -473,7 +473,7 @@ def user_info(request):
             endpoint="user_info",
             event="error_processing_user_info",
             message="An error occurred while processing user info request.",
-            exception=str(e)
+            error=str(e)
         )
         try:
             if "Table 'webApp.myapp_user' doesn't exist" in str(e):
@@ -483,7 +483,7 @@ def user_info(request):
                     endpoint="user_info",
                     event="database_error",
                     message="Database error occurred while processing user info request.",
-                    exception=str(e)
+                    error=str(e)
                 )
                 return JsonResponse({'error': 'An internal server error occurred. Please try again later.'},
                                     status=500)
@@ -494,7 +494,7 @@ def user_info(request):
                 endpoint="user_info",
                 event="error_processing_database_error",
                 message="Error processing database error in user_info.",
-                exception=str(err)
+                error=str(err)
             )
         logger.error(
             method=request.method,
@@ -502,7 +502,7 @@ def user_info(request):
             endpoint="user_info",
             event="unknown_error",
             message="An error occurred while processing user info request.",
-            exception=str(e)
+            error=str(e)
         )
         return HttpResponseBadRequest(status=400)
 
@@ -596,7 +596,7 @@ def verify_user(request):
             endpoint="verify_user",
             event="error_processing_verification",
             message="An error occurred while processing user verification.",
-            exception=str(e)
+            error=str(e)
         )
         return JsonResponse({'error': 'An error occurred while processing verification. Please try again later.'},
                             status=500)
