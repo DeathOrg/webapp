@@ -215,6 +215,7 @@ def create_user(request):
 
                     pubsub_topic = "verify_email"
                     pubsub_msg = {
+                        "first_name": user.first_name,
                         "username": user.username,
                         "hostname": hostname,
                         "verification_api": verification_api
@@ -248,6 +249,7 @@ def create_user(request):
 
                 pubsub_topic = "verify_email"
                 pubsub_msg = {
+                    "first_name": user.first_name,
                     "username": user.username,
                     "hostname": hostname,
                     "verification_api": verification_api
