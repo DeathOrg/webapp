@@ -578,7 +578,7 @@ def verify_user(request):
         # verification_obj.delete()  # Optional: Delete verification entry after successful use
 
         user_id = verification_obj.user_id
-        user = User.objects.filter(user_id=user_id).first()
+        user = User.objects.filter(id=user_id).first()
         if user:
             user.is_verified = True
             user.save()
