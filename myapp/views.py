@@ -191,7 +191,7 @@ def create_user(request):
                     request_id=request.request_id,
                     endpoint="create_user",
                     event="json_decode_error",
-                    message="Error decoding JSON in create_user.",
+                    message="Error decoding JSON in create user.",
                     error=str(e)
                 )
                 return HttpResponseBadRequest(status=400)
