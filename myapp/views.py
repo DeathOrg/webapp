@@ -357,7 +357,7 @@ def get_user_from_credentials(request):
             return None, msg
 
     except User.DoesNotExist:
-        msg = f"User: {username} not found."
+        msg = f"User not found."
         logger.warn(
             method=request.method,
             request_id=request.request_id,
@@ -380,7 +380,10 @@ def user_info(request):
         if request.method == 'GET' or request.method == 'PUT':
             user, msg = get_user_from_credentials(request)
             if not user:
-                return JsonResponse({'error': msg}, status=401)
+                if msg == f"User not found.":
+                    return JsonResponse({'error': msg}, status=403)
+                else:
+                    return JsonResponse({'error': msg}, status=401)
 
             if request.method == 'GET':
                 if request.body:
