@@ -325,7 +325,7 @@ def create_user(request):
 def get_user_from_credentials(request):
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Basic '):
-        return None, "Invalid Request, Need Authorization header"
+        return None, "Invalid Request, Need Authorization header", 401
 
     encoded_credentials = auth_header[len('Basic '):]
     decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
@@ -343,8 +343,8 @@ def get_user_from_credentials(request):
                     event="Fetching user detail failed",
                     message=msg
                 )
-                return None, msg
-            return user, f"Authorisation successful for user: {username}"
+                return None, msg, 403
+            return user, f"Authorisation successful for user: {username}", 1 # 1 denotes everything is okay
         else:
             msg = f"Authorisation failure for user: {username}"
             logger.warn(
@@ -354,7 +354,7 @@ def get_user_from_credentials(request):
                 event="Fetching user detail failed",
                 message=msg
             )
-            return None, msg
+            return None, msg, 401
 
     except User.DoesNotExist:
         msg = f"User: {username} not found."
@@ -365,7 +365,7 @@ def get_user_from_credentials(request):
             event="Fetching user detail failed",
             message=msg
         )
-        return None, msg
+        return None, msg, 401
 
 
 def user_info(request):
@@ -378,9 +378,9 @@ def user_info(request):
             message="Get user info endpoint accessed."
         )
         if request.method == 'GET' or request.method == 'PUT':
-            user, msg = get_user_from_credentials(request)
+            user, msg, resp_status = get_user_from_credentials(request)
             if not user:
-                return JsonResponse({'error': msg}, status=401)
+                return JsonResponse({'error': msg}, status=resp_status)
 
             if request.method == 'GET':
                 if request.body:
@@ -578,7 +578,7 @@ def verify_user(request):
         # verification_obj.delete()  # Optional: Delete verification entry after successful use
 
         user_id = verification_obj.user_id
-        user = User.objects.filter(user_id=user_id).first()
+        user = User.objects.filter(id=user_id).first()
         if user:
             user.is_verified = True
             user.save()
