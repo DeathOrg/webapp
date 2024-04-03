@@ -27,7 +27,7 @@ fi
 if python3.9 manage.py makemigrations myapp --check | grep -q "No changes detected"; then
     echo "No pending migrations found."
 else
-      python3.9 manage.py flush --no-input
+#      python3.9 manage.py flush --no-input
       python3.9 manage.py makemigrations myapp
       python3.9 manage.py migrate
       echo "Migration done for myapp"
