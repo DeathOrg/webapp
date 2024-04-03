@@ -41,7 +41,7 @@ def healthz(request):
                 )
                 return HttpResponseBadRequest(status=400)
             else:
-                logger.info(
+                logger.debug(
                     method=request.method,
                     request_id=request.request_id,
                     endpoint="healthz",
