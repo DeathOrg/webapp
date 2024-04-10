@@ -23,35 +23,31 @@ jobs:
       - name: 'Use gcloud CLI'
         run: 'gcloud info'
 
-      - name: 'Create temporary metadata script'
+      - name: 'Create instance template'
+        id: create_instance_template
         run: |
+          latest_image=my-webapp-2024-04-03-09-00-50
           project_id="${{ secrets.GCP_PROJECT_ID }}"
           region="${{ secrets.IT_REGION }}"
           database_password="${{ secrets.DATABASE_PASSWORD }}"
           database_host="${{ secrets.DATABASE_HOST }}"
           database_user="${{ secrets.DATABASE_USER }}"
           domain_name="${{ secrets.DOMAIN_NAME }}"
-          # Create temporary metadata script file
-          rm -rf metadata.sh
-          
-          cat <<EOF > metadata.sh
+          startup_script=$(cat <<EOF
           #!/bin/bash
-          echo "DATABASE_HOST=$database_host" >> /home/csye6225/cloud/webapp/config/.env
-          echo "DATABASE_USER=$database_user" >> /home/csye6225/cloud/webapp/config/.env
-          echo "DATABASE_PASSWORD=$database_password" >> /home/csye6225/cloud/webapp/config/.env
-          echo "PROJECT_ID=$project_id" >> /home/csye6225/cloud/webapp/config/.env
-          echo "DOMAIN_NAME=$domain_name" >> /home/csye6225/cloud/webapp/config/.env
+          echo "DATABASE_HOST=\$database_host" >> /home/csye6225/cloud/webapp/config/.env
+          echo "DATABASE_USER=\$database_user" >> /home/csye6225/cloud/webapp/config/.env
+          echo "DATABASE_PASSWORD=\$database_password" >> /home/csye6225/cloud/webapp/config/.env
+          echo "PROJECT_ID=\$project_id" >> /home/csye6225/cloud/webapp/config/.env
+          echo "DOMAIN_NAME=\$domain_name" >> /home/csye6225/cloud/webapp/config/.env
           /home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp
           rm -rf /var/log/myapp/app.log
           rm -rf /home/csye6225/cloud/webapp/LICENSE /home/csye6225/cloud/webapp/packer/ /home/csye6225/cloud/webapp/README.md /home/csye6225/cloud/webapp/requirements/ /home/csye6225/cloud/webapp/.gitignore
           touch /home/csye6225/cloud/workdone
           EOF
+          )
           
-          cat metadata.sh
-      - name: 'Create instance template'
-        id: create_instance_template
-        run: |
-          latest_image=my-webapp-2024-04-03-09-00-50
+          echo "${startup_script}"
           random_string=$(openssl rand -hex 3)
           instance_template_name="${{ secrets.INSTANCE_TEMPLATE_PREFIX }}-${random_string}"
           echo "::set-output name=instance_template_name::${instance_template_name}"
@@ -64,16 +60,7 @@ jobs:
           --network-interface=network-tier=${{ secrets.IT_NETWORK_TIER }},subnet=${{ secrets.IT_SUBNET }} \
           --instance-template-region=${{ secrets.IT_REGION }} \
           --region=${{ secrets.IT_REGION }} \
-          --metadata=startup-script="#!/bin/bash
-            echo \"DATABASE_HOST=10.192.0.2\" >> /home/csye6225/cloud/webapp/config/.env
-            echo \"DATABASE_USER=dev-1\" >> /home/csye6225/cloud/webapp/config/.env
-            echo \"DATABASE_PASSWORD=SK%QsF6QfQB7zkcO\" >> /home/csye6225/cloud/webapp/config/.env
-            echo \"PROJECT_ID=tf-gcp-infra-27\" >> /home/csye6225/cloud/webapp/config/.env
-            echo \"DOMAIN_NAME=sourabhk.com\" >> /home/csye6225/cloud/webapp/config/.env
-            /home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp
-            rm -rf /var/log/myapp/app.log
-            rm -rf /home/csye6225/cloud/webapp/LICENSE /home/csye6225/cloud/webapp/packer/ /home/csye6225/cloud/webapp/README.md /home/csye6225/cloud/webapp/requirements/ /home/csye6225/cloud/webapp/.gitignore
-            touch /home/csye6225/cloud/workdone" \
+          --metadata=startup-script=${startup_script} \
           --maintenance-policy=${{ secrets.IT_MAINTENANCE_POLICY }} \
           --provisioning-model=${{ secrets.IT_PROVISIONING_MODEL }} \
           --service-account=${{ secrets.IT_SERVICE_ACCOUNT }} \
