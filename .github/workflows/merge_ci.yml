@@ -70,8 +70,8 @@ jobs:
           --tags=${{ secrets.IT_TAGS }} \
           --create-disk=auto-delete=${{ secrets.IT_AUTO_DELETE }},boot=${{ secrets.IT_BOOT }},device-name=${instance_template_name},image=projects/${{ secrets.GCP_PROJECT_ID }}/global/images/${latest_image},kms-key=projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.IT_REGION }}/keyRings/${{ secrets.IT_KEY_RING }}/cryptoKeys/${{ secrets.IT_VM_KEY }},mode=rw,size=${{ secrets.IT_DISK_SIZE }},type=${{ secrets.IT_DISK_TYPE }} \
           --no-shielded-secure-boot \
-          --no-shielded-vtpm \
-          --no-shielded-integrity-monitoring \
+          --shielded-vtpm \
+          --shielded-integrity-monitoring \
           --reservation-affinity=any
           
           
@@ -80,7 +80,7 @@ jobs:
         run: |
           gcloud compute instance-groups managed rolling-action start-update ${{ secrets.MIG_NAME }} \
           --region=${{ secrets.IT_REGION }} \
-          --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.IT_REGION }}/instanceTemplates/{instance_template_name} \
+          --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.IT_REGION }}/instanceTemplates/${{ steps.create_instance_template.outputs.instance_template_name }} \
           --max-unavailable=${{ secrets.MIG_MAX_UNAVAILABLE }} \
           --type=${{ secrets.MIG_START_UPDATE_TYPE }}
       - name: 'Wait till all the instances get refreshed'
