@@ -1,7 +1,7 @@
 name: Build and Image Creation
 
 on:
-  push:
+  pull_request:
     branches: [ main ]
 
 jobs:
@@ -12,55 +12,66 @@ jobs:
       matrix:
         python-version: [ 3.9 ]
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Google auth
-        uses: google-github-actions/auth@v2
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
 
-      - name: Use gcloud CLI
-        run: gcloud info
+      - name: 'Use gcloud CLI'
+        run: 'gcloud info'
 
-      - name: Zip creation
-        run: |
-          mkdir -p app_artifact
-          mkdir -p requirements
-          cp packer/scripts/requirements.txt requirements || exit 1
-          zip -r webapp.zip . -x ".git/*" ".github/*" || exit 1
-          mv webapp.zip app_artifact || exit 1
-
-      - name: Setup `packer`
-        uses: hashicorp/setup-packer@main
-        id: setup
-        with:
-          version: "latest"
-
-      - name: Format Packer template
-        run: |
-          cd packer
-          output=$(packer fmt -check .)
-          if [ -n "$output" ]; then
-            echo "$output"
-            exit 1
-          fi
-
-      - name: Build app image
-        run: |
-          cd packer
-          packer init webapp.pkr.hcl
-          packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl
-          packer build -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl || exit 1
-
-      - name: Report status
-        if: always()
-        run: |
-          echo "Build completed successfully!"
+#      - uses: actions/checkout@v3
+#
+#      - name: Set up Python ${{ matrix.python-version }}
+#        uses: actions/setup-python@v3
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Google auth
+#        uses: google-github-actions/auth@v2
+#        with:
+#          credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+#
+#      - name: Set up Cloud SDK
+#        uses: google-github-actions/setup-gcloud@v2
+#
+#      - name: Use gcloud CLI
+#        run: gcloud info
+#
+#      - name: Zip creation
+#        run: |
+#          mkdir -p app_artifact
+#          mkdir -p requirements
+#          cp packer/scripts/requirements.txt requirements || exit 1
+#          zip -r webapp.zip . -x ".git/*" ".github/*" || exit 1
+#          mv webapp.zip app_artifact || exit 1
+#
+#      - name: Setup `packer`
+#        uses: hashicorp/setup-packer@main
+#        id: setup
+#        with:
+#          version: "latest"
+#
+#      - name: Format Packer template
+#        run: |
+#          cd packer
+#          output=$(packer fmt -check .)
+#          if [ -n "$output" ]; then
+#            echo "$output"
+#            exit 1
+#          fi
+#
+#      - name: Build app image
+#        run: |
+#          cd packer
+#          packer init webapp.pkr.hcl
+#          packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl
+#          packer build -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl || exit 1
+#
+#      - name: Report status
+#        if: always()
+#        run: |
+#          echo "Build completed successfully!"
