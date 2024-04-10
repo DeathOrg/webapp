@@ -35,11 +35,11 @@ jobs:
           domain_name="${{ secrets.DOMAIN_NAME }}"
           startup_script=$(cat <<EOF
           #!/bin/bash
-          echo "DATABASE_HOST=\$database_host" >> /home/csye6225/cloud/webapp/config/.env
-          echo "DATABASE_USER=\$database_user" >> /home/csye6225/cloud/webapp/config/.env
-          echo "DATABASE_PASSWORD=\$database_password" >> /home/csye6225/cloud/webapp/config/.env
-          echo "PROJECT_ID=\$project_id" >> /home/csye6225/cloud/webapp/config/.env
-          echo "DOMAIN_NAME=\$domain_name" >> /home/csye6225/cloud/webapp/config/.env
+          echo "DATABASE_HOST=${database_host}" >> /home/csye6225/cloud/webapp/config/.env
+          echo "DATABASE_USER=${database_user}" >> /home/csye6225/cloud/webapp/config/.env
+          echo "DATABASE_PASSWORD=${database_password}" >> /home/csye6225/cloud/webapp/config/.env
+          echo "PROJECT_ID=${project_id}" >> /home/csye6225/cloud/webapp/config/.env
+          echo "DOMAIN_NAME=${domain_name}" >> /home/csye6225/cloud/webapp/config/.env
           /home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp
           rm -rf /var/log/myapp/app.log
           rm -rf /home/csye6225/cloud/webapp/LICENSE /home/csye6225/cloud/webapp/packer/ /home/csye6225/cloud/webapp/README.md /home/csye6225/cloud/webapp/requirements/ /home/csye6225/cloud/webapp/.gitignore
