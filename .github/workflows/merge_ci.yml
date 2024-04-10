@@ -33,6 +33,8 @@ jobs:
           domain_name="${{ secrets.DOMAIN_NAME }}"
 
           # Create temporary metadata script file
+          rm -rf metadata.sh
+          
           cat <<EOF > metadata.sh
           #!/bin/bash
           echo "DATABASE_HOST=$database_host" >> /home/csye6225/cloud/webapp/config/.env
@@ -55,9 +57,9 @@ jobs:
           
           random_string=$(openssl rand -hex 3)
           instance_template_name=${INSTANCE_TEMPLATE_PREFIX}-${random_string}
-          
+          echo "New instance template name: ${instance_template_name}"
           gcloud --quiet components install beta
-          gcloud beta compute instance-templates create {instance_template_name} \
+          gcloud beta compute instance-templates create ${instance_template_name} \
           --project=${{ secrets.GCP_PROJECT_ID }} \
           --machine-type=${{ secrets.IT_MACHINE_TYPE }} \
           --network-interface=network-tier=${{ secrets.IT_NETWORK_TIER }},subnet=${{ secrets.IT_SUBNET }} \
