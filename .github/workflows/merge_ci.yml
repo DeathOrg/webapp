@@ -49,6 +49,7 @@ jobs:
           
           cat metadata.sh
       - name: 'Create instance template'
+        id: create_instance_template
         run: |
           latest_image=my-webapp-2024-04-03-09-00-50
           random_string=$(openssl rand -hex 3)
@@ -58,6 +59,7 @@ jobs:
           gcloud --quiet components install beta
           gcloud beta compute instance-templates create ${instance_template_name} \
           --project=${{ secrets.GCP_PROJECT_ID }} \
+          --description="This template is used to create app server instances" \
           --machine-type=${{ secrets.IT_MACHINE_TYPE }} \
           --network-interface=network-tier=${{ secrets.IT_NETWORK_TIER }},subnet=${{ secrets.IT_SUBNET }} \
           --instance-template-region=${{ secrets.IT_REGION }} \
