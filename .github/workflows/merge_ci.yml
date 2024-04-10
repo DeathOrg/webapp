@@ -31,7 +31,6 @@ jobs:
           database_host="${{ secrets.DATABASE_HOST }}"
           database_user="${{ secrets.DATABASE_USER }}"
           domain_name="${{ secrets.DOMAIN_NAME }}"
-
           # Create temporary metadata script file
           rm -rf metadata.sh
           
@@ -49,19 +48,15 @@ jobs:
           EOF
           
           cat metadata.sh
-
-
       - name: 'Create instance template'
-        id: create_instance_template
         run: |
           latest_image=my-webapp-2024-04-03-09-00-50
           random_string=$(openssl rand -hex 3)
           instance_template_name="${{ secrets.INSTANCE_TEMPLATE_PREFIX }}-${random_string}"
-
+          echo "::set-output name=instance_template_name::${instance_template_name}"
           echo "New instance template name: ${instance_template_name}"
           gcloud --quiet components install beta
           gcloud beta compute instance-templates create ${instance_template_name} \
-          --description="This template is used to create app server instances" \
           --project=${{ secrets.GCP_PROJECT_ID }} \
           --machine-type=${{ secrets.IT_MACHINE_TYPE }} \
           --network-interface=network-tier=${{ secrets.IT_NETWORK_TIER }},subnet=${{ secrets.IT_SUBNET }} \
@@ -71,79 +66,25 @@ jobs:
           --maintenance-policy=${{ secrets.IT_MAINTENANCE_POLICY }} \
           --provisioning-model=${{ secrets.IT_PROVISIONING_MODEL }} \
           --service-account=${{ secrets.IT_SERVICE_ACCOUNT }} \
-          --scopes=https://www.googleapis.com/auth/cloud-platform \
+          --scopes=${{ secrets.IT_SCOPES }} \
           --tags=${{ secrets.IT_TAGS }} \
-          --create-disk=auto-delete=${{ secrets.IT_AUTO_DELETE }},boot=${{ secrets.IT_BOOT }},device-name=${instance_template_name},image=projects/${{ secrets.GCP_PROJECT_ID }}/global/images/${latest_image},kms-key=projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.IT_REGION }}/keyRings/${{ secrets.IT_KEY_RING }}/cryptoKeys/${{ secrets.IT_VM_KEY }},mode=rw,size=${{ secrets.IT_DISK_SIZE }},type=${{ secrets.IT_DISK_TYPE }} \         
+          --create-disk=auto-delete=${{ secrets.IT_AUTO_DELETE }},boot=${{ secrets.IT_BOOT }},device-name=${instance_template_name},image=projects/${{ secrets.GCP_PROJECT_ID }}/global/images/${latest_image},kms-key=projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.IT_REGION }}/keyRings/${{ secrets.IT_KEY_RING }}/cryptoKeys/${{ secrets.IT_VM_KEY }},mode=rw,size=${{ secrets.IT_DISK_SIZE }},type=${{ secrets.IT_DISK_TYPE }} \
           --no-shielded-secure-boot \
-          --shielded-vtpm \
-          --shielded-integrity-monitoring \
+          --no-shielded-vtpm \
+          --no-shielded-integrity-monitoring \
           --reservation-affinity=any
-
+          
+          
+          rm -f metadata.sh
       - name: 'Update MIG with new instance template'
         run: |
           gcloud compute instance-groups managed rolling-action start-update ${{ secrets.MIG_NAME }} \
           --region=${{ secrets.IT_REGION }} \
-          --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.IT_REGION }}/instanceTemplates/${{ steps.create_instance_template.outputs.instance_template_name }} \
+          --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.IT_REGION }}/instanceTemplates/{instance_template_name} \
           --max-unavailable=${{ secrets.MIG_MAX_UNAVAILABLE }} \
           --type=${{ secrets.MIG_START_UPDATE_TYPE }}
-
       - name: 'Wait till all the instances get refreshed'
         run: |
           gcloud compute instance-groups managed wait-until ${{ secrets.MIG_NAME }} \
           --version-target-reached \
           --region=${{ secrets.IT_REGION }}
-
-#
-
-#      - uses: actions/checkout@v3
-#
-#      - name: Set up Python ${{ matrix.python-version }}
-#        uses: actions/setup-python@v3
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#
-#      - name: Google auth
-#        uses: google-github-actions/auth@v2
-#        with:
-#          credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
-#
-#      - name: Set up Cloud SDK
-#        uses: google-github-actions/setup-gcloud@v2
-#
-#      - name: Use gcloud CLI
-#        run: gcloud info
-#
-#      - name: Zip creation
-#        run: |
-#          mkdir -p app_artifact
-#          mkdir -p requirements
-#          cp packer/scripts/requirements.txt requirements || exit 1
-#          zip -r webapp.zip . -x ".git/*" ".github/*" || exit 1
-#          mv webapp.zip app_artifact || exit 1
-#
-#      - name: Setup `packer`
-#        uses: hashicorp/setup-packer@main
-#        id: setup
-#        with:
-#          version: "latest"
-#
-#      - name: Format Packer template
-#        run: |
-#          cd packer
-#          output=$(packer fmt -check .)
-#          if [ -n "$output" ]; then
-#            echo "$output"
-#            exit 1
-#          fi
-#
-#      - name: Build app image
-#        run: |
-#          cd packer
-#          packer init webapp.pkr.hcl
-#          packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl
-#          packer build -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl || exit 1
-#
-#      - name: Report status
-#        if: always()
-#        run: |
-#          echo "Build completed successfully!"
