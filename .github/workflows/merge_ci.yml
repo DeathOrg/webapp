@@ -51,7 +51,7 @@ jobs:
 
       - name: 'Create instance template'
         run: |
-          latest_image = my-webapp-2024-04-03-09-00-50
+          latest_image=my-webapp-2024-04-03-09-00-50
           
           random_string=$(openssl rand -hex 3)
           instance_template_name=${INSTANCE_TEMPLATE_PREFIX}-${random_string}
