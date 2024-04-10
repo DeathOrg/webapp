@@ -1,7 +1,7 @@
 name: Build and Image Creation
 
 on:
-  push:
+  pull_request:
     branches: [ main ]
 
 jobs:
@@ -59,6 +59,7 @@ jobs:
           cd packer
           packer init webapp.pkr.hcl
           packer validate -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl
+          packer build -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl || exit 1
           output=$(packer build -var='gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' -var='mysql_user_password=${{ secrets.DB_USER_PASSWORD }}' -var='mysql_root_password=${{ secrets.DB_ROOT_PASSWORD }}' webapp.pkr.hcl || exit 1)
           image_name=$(echo "$output" | grep -oE 'my-webapp-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}' | tail -n1)
           echo "::set-output name=image_name::$image_name"
