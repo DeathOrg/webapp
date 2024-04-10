@@ -65,7 +65,7 @@ jobs:
           --instance-template-region=${{ secrets.IT_REGION }} \
           --region=${{ secrets.IT_REGION }} \
           --metadata=startup-script="#!/bin/bash
-            echo \"DATABASE_HOST=10.64.0.5\" >> /home/csye6225/cloud/webapp/config/.env
+            echo \"DATABASE_HOST=10.192.0.2\" >> /home/csye6225/cloud/webapp/config/.env
             echo \"DATABASE_USER=dev-1\" >> /home/csye6225/cloud/webapp/config/.env
             echo \"DATABASE_PASSWORD=SK%QsF6QfQB7zkcO\" >> /home/csye6225/cloud/webapp/config/.env
             echo \"PROJECT_ID=tf-gcp-infra-27\" >> /home/csye6225/cloud/webapp/config/.env
