@@ -20,31 +20,31 @@ jobs:
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
 
-      - name: 'Use gcloud CLI'
-        run: 'gcloud info'
+#      - name: 'Use gcloud CLI'
+#        run: 'gcloud info'
 
-      - name: 'Create instance template'
-        run: |
-          gcloud --quiet components install beta
-          gcloud beta compute instance-templates create instance-template-new \
-          --project=tf-gcp-infra-27 \
-          --machine-type=e2-small \
-          --network-interface=network-tier=PREMIUM,subnet=webapp \
-          --instance-template-region=us-central1 \
-          --region=us-central1 \
-          --metadata=startup-script="#!/bin/bash$'\n'echo \"DATABASE_HOST=10.64.0.5\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DATABASE_USER=dev-1\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DATABASE_PASSWORD=SK%QsF6QfQB7zkcO\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"PROJECT_ID=tf-gcp-infra-27\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DOMAIN_NAME=sourabhk.com\" >> /home/csye6225/cloud/webapp/config/.env$'\n'/home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp$'\n'rm -rf /var/log/myapp/app.log$'\n'rm -rf /home/csye6225/cloud/webapp/LICENSE /home/csye6225/cloud/webapp/packer/ /home/csye6225/cloud/webapp/README.md /home/csye6225/cloud/webapp/requirements/ /home/csye6225/cloud/webapp/.gitignore$'\n'touch /home/csye6225/cloud/workdone" \
-          --maintenance-policy=MIGRATE \
-          --provisioning-model=STANDARD \
-          --service-account=my-vm-sa@tf-gcp-infra-27.iam.gserviceaccount.com \
-          --scopes=https://www.googleapis.com/auth/cloud-platform \
-          --tags=my-compute-instance \
-          --create-disk=auto-delete=yes,boot=yes,device-name=instance-template-new,image=projects/tf-gcp-infra-27/global/images/my-webapp-2024-04-03-09-00-50,kms-key=projects/tf-gcp-infra-27/locations/us-central1/keyRings/key-ring-5f544a03/cryptoKeys/vm-key,mode=rw,size=20,type=pd-standard \
-          --no-shielded-secure-boot \
-          --no-shielded-vtpm \
-          --no-shielded-integrity-monitoring \
-          --reservation-affinity=any
-          
-          sleep 60
+#      - name: 'Create instance template'
+#        run: |
+#          gcloud --quiet components install beta
+#          gcloud beta compute instance-templates create instance-template-new \
+#          --project=tf-gcp-infra-27 \
+#          --machine-type=e2-small \
+#          --network-interface=network-tier=PREMIUM,subnet=webapp \
+#          --instance-template-region=us-central1 \
+#          --region=us-central1 \
+#          --metadata=startup-script="#!/bin/bash$'\n'echo \"DATABASE_HOST=10.64.0.5\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DATABASE_USER=dev-1\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DATABASE_PASSWORD=SK%QsF6QfQB7zkcO\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"PROJECT_ID=tf-gcp-infra-27\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DOMAIN_NAME=sourabhk.com\" >> /home/csye6225/cloud/webapp/config/.env$'\n'/home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp$'\n'rm -rf /var/log/myapp/app.log$'\n'rm -rf /home/csye6225/cloud/webapp/LICENSE /home/csye6225/cloud/webapp/packer/ /home/csye6225/cloud/webapp/README.md /home/csye6225/cloud/webapp/requirements/ /home/csye6225/cloud/webapp/.gitignore$'\n'touch /home/csye6225/cloud/workdone" \
+#          --maintenance-policy=MIGRATE \
+#          --provisioning-model=STANDARD \
+#          --service-account=my-vm-sa@tf-gcp-infra-27.iam.gserviceaccount.com \
+#          --scopes=https://www.googleapis.com/auth/cloud-platform \
+#          --tags=my-compute-instance \
+#          --create-disk=auto-delete=yes,boot=yes,device-name=instance-template-new,image=projects/tf-gcp-infra-27/global/images/my-webapp-2024-04-03-09-00-50,kms-key=projects/tf-gcp-infra-27/locations/us-central1/keyRings/key-ring-5f544a03/cryptoKeys/vm-key,mode=rw,size=20,type=pd-standard \
+#          --no-shielded-secure-boot \
+#          --no-shielded-vtpm \
+#          --no-shielded-integrity-monitoring \
+#          --reservation-affinity=any
+#
+#          sleep 60
 
       - name: 'Update MIG with new instance template'
         run: |
