@@ -58,7 +58,6 @@ jobs:
 
           random_string=$(openssl rand -hex 3)
           instance_template_name="${{ secrets.INSTANCE_TEMPLATE_PREFIX }}-${random_string}"
-          echo "::set-output name=instance_template_name::${instance_template_name}"
 
           echo "New instance template name: ${instance_template_name}"
           gcloud --quiet components install beta
