@@ -54,7 +54,7 @@ jobs:
       - name: 'Create instance template'
         run: |
           latest_image=my-webapp-2024-04-03-09-00-50
-          
+
           random_string=$(openssl rand -hex 3)
           instance_template_name="${{ secrets.INSTANCE_TEMPLATE_PREFIX }}-${random_string}"
 
@@ -72,11 +72,12 @@ jobs:
           --service-account=${{ secrets.IT_SERVICE_ACCOUNT }} \
           --scopes=${{ secrets.IT_SCOPES }} \
           --tags=${{ secrets.IT_TAGS }} \
-          --create-disk=auto-delete=${{ secrets.IT_AUTO_DELETE }},boot=${{ secrets.IT_BOOT }},device-name={instance_template_name},image=projects/${{ secrets.GCP_PROJECT_ID }}/global/images/${latest_image},kms-key=projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.IT_REGION }}/keyRings/${{ secrets.IT_KEY_RING }}/cryptoKeys/${{ secrets.IT_VM_KEY }},mode=rw,size=${{ secrets.IT_DISK_SIZE }},type=${{ secrets.IT_DISK_TYPE }} \
+          --create-disk=auto-delete=${{ secrets.IT_AUTO_DELETE }},boot=${{ secrets.IT_BOOT }},device-name=${instance_template_name},image=projects/${{ secrets.GCP_PROJECT_ID }}/global/images/${latest_image},kms-key=projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.IT_REGION }}/keyRings/${{ secrets.IT_KEY_RING }}/cryptoKeys/${{ secrets.IT_VM_KEY }},mode=rw,size=${{ secrets.IT_DISK_SIZE }},type=${{ secrets.IT_DISK_TYPE }} \
           --no-shielded-secure-boot \
           --no-shielded-vtpm \
           --no-shielded-integrity-monitoring \
           --reservation-affinity=any
+          
           
           rm -f metadata.sh
 
