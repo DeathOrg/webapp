@@ -76,9 +76,9 @@ jobs:
           --scopes=${{ secrets.IT_SCOPES }} \
           --tags=${{ secrets.IT_TAGS }} \
           --create-disk=auto-delete=${{ secrets.IT_AUTO_DELETE }},boot=${{ secrets.IT_BOOT }},device-name=${instance_template_name},image=projects/${{ secrets.GCP_PROJECT_ID }}/global/images/${latest_image},kms-key=projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.IT_REGION }}/keyRings/${{ secrets.IT_KEY_RING }}/cryptoKeys/${{ secrets.IT_VM_KEY }},mode=rw,size=${{ secrets.IT_DISK_SIZE }},type=${{ secrets.IT_DISK_TYPE }} \         
-          --no-shielded-secure-boot 
-          --shielded-vtpm 
-          --shielded-integrity-monitoring 
+          --no-shielded-secure-boot \
+          --shielded-vtpm \
+          --shielded-integrity-monitoring \
           --reservation-affinity=any
           
           
