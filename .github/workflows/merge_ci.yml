@@ -23,46 +23,73 @@ jobs:
       - name: 'Use gcloud CLI'
         run: 'gcloud info'
 
-#      - name: 'Create instance template'
-#        run: |
-#          gcloud --quiet components install beta
-#          gcloud beta compute instance-templates create instance-template-new-12347894545 \
-#          --project=tf-gcp-infra-27 \
-#          --machine-type=e2-small \
-#          --network-interface=network-tier=PREMIUM,subnet=webapp \
-#          --instance-template-region=us-central1 \
-#          --region=us-central1 \
-#          --metadata=startup-script="#!/bin/bash$'\n'echo \"DATABASE_HOST=10.64.0.5\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DATABASE_USER=dev-1\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DATABASE_PASSWORD=SK%QsF6QfQB7zkcO\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"PROJECT_ID=tf-gcp-infra-27\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DOMAIN_NAME=sourabhk.com\" >> /home/csye6225/cloud/webapp/config/.env$'\n'/home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp$'\n'rm -rf /var/log/myapp/app.log$'\n'rm -rf /home/csye6225/cloud/webapp/LICENSE /home/csye6225/cloud/webapp/packer/ /home/csye6225/cloud/webapp/README.md /home/csye6225/cloud/webapp/requirements/ /home/csye6225/cloud/webapp/.gitignore$'\n'touch /home/csye6225/cloud/workdone" \
-#          --maintenance-policy=MIGRATE \
-#          --provisioning-model=STANDARD \
-#          --service-account=my-vm-sa@tf-gcp-infra-27.iam.gserviceaccount.com \
-#          --scopes=https://www.googleapis.com/auth/cloud-platform \
-#          --tags=my-compute-instance \
-#          --create-disk=auto-delete=yes,boot=yes,device-name=instance-template-new-12347894545,image=projects/tf-gcp-infra-27/global/images/my-webapp-2024-04-03-09-00-50,kms-key=projects/tf-gcp-infra-27/locations/us-central1/keyRings/key-ring-5f544a03/cryptoKeys/vm-key,mode=rw,size=20,type=pd-standard \
-#          --no-shielded-secure-boot \
-#          --no-shielded-vtpm \
-#          --no-shielded-integrity-monitoring \
-#          --reservation-affinity=any
-#
-#          sleep 60
+      - name: 'Create temporary metadata script'
+        run: |
+          project_id="${{ secrets.GCP_PROJECT_ID }}"
+          region="${{ secrets.IT_REGION }}"
+          database_password="${{ secrets.DATABASE_PASSWORD }}"
+          database_host="${{ secrets.DATABASE_HOST }}"
+          database_user="${{ secrets.DATABASE_USER }}"
+          domain_name="${{ secrets.DOMAIN_NAME }}"
+
+          # Create temporary metadata script file
+          cat <<EOF > metadata.sh
+          #!/bin/bash
+          echo "DATABASE_HOST=$database_host" >> /home/csye6225/cloud/webapp/config/.env
+          echo "DATABASE_USER=$database_user" >> /home/csye6225/cloud/webapp/config/.env
+          echo "DATABASE_PASSWORD=$database_password" >> /home/csye6225/cloud/webapp/config/.env
+          echo "PROJECT_ID=$project_id" >> /home/csye6225/cloud/webapp/config/.env
+          echo "DOMAIN_NAME=$domain_name" >> /home/csye6225/cloud/webapp/config/.env
+          /home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp
+          rm -rf /var/log/myapp/app.log
+          rm -rf /home/csye6225/cloud/webapp/LICENSE /home/csye6225/cloud/webapp/packer/ /home/csye6225/cloud/webapp/README.md /home/csye6225/cloud/webapp/requirements/ /home/csye6225/cloud/webapp/.gitignore
+          touch /home/csye6225/cloud/workdone
+          EOF
+          
+          cat metadata.sh
+
+
+      - name: 'Create instance template'
+        run: |
+          latest_image = my-webapp-2024-04-03-09-00-50
+          
+          random_string=$(openssl rand -hex 3)
+          instance_template_name=${INSTANCE_TEMPLATE_PREFIX}-${random_string}
+          
+          gcloud --quiet components install beta
+          gcloud beta compute instance-templates create {instance_template_name} \
+          --project=${{ secrets.GCP_PROJECT_ID }} \
+          --machine-type=${{ secrets.IT_MACHINE_TYPE }} \
+          --network-interface=network-tier=${{ secrets.IT_NETWORK_TIER }},subnet=${{ secrets.IT_SUBNET }} \
+          --instance-template-region=${{ secrets.IT_REGION }} \
+          --region=${{ secrets.IT_REGION }} \
+          --metadata=startup-script-file=metadata.sh \
+          --maintenance-policy=${{ secrets.IT_MAINTENANCE_POLICY }} \
+          --provisioning-model=${{ secrets.IT_PROVISIONING_MODEL }} \
+          --service-account=${{ secrets.IT_SERVICE_ACCOUNT }} \
+          --scopes=${{ secrets.IT_SCOPES }} \
+          --tags=${{ secrets.IT_TAGS }} \
+          --create-disk=auto-delete=${{ secrets.IT_AUTO_DELETE }},boot=${{ secrets.IT_BOOT }},device-name={instance_template_name},image=projects/${{ secrets.GCP_PROJECT_ID }}/global/images/${latest_image},kms-key=projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.IT_REGION }}/keyRings/${{ secrets.IT_KEY_RING }}/cryptoKeys/${{ secrets.IT_VM_KEY }},mode=rw,size=${{ secrets.IT_DISK_SIZE }},type=${{ secrets.IT_DISK_TYPE }} \
+          --no-shielded-secure-boot \
+          --no-shielded-vtpm \
+          --no-shielded-integrity-monitoring \
+          --reservation-affinity=any
+          
+          rm -f metadata.sh
 
       - name: 'Update MIG with new instance template'
         run: |
-          gcloud compute instance-groups managed rolling-action start-update appserver-igm \
-          --region=us-central1 \
-          --version=template=instance-template-new-12347894545 \
-          --type=proactive
+          gcloud compute instance-groups managed rolling-action start-update ${{ secrets.MIG_NAME }} \
+          --region=${{ secrets.IT_REGION }} \
+          --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.IT_REGION }}/instanceTemplates/{instance_template_name} \
+          --max-unavailable=${{ secrets.MIG_MAX_UNAVAILABLE }} \
+          --type=${{ secrets.MIG_START_UPDATE_TYPE }}
 
       - name: 'Wait till all the instances get refreshed'
         run: |
-          gcloud compute instance-groups managed wait-until appserver-igm \
+          gcloud compute instance-groups managed wait-until ${{ secrets.MIG_NAME }} \
           --version-target-reached \
-          --region=us-central1
-
-#        run: |
-#          gcloud compute instance-groups managed recreate-instances appserver-igm \
-#          --instances=INSTANCE \
-#          --region=us-central1
+          --region=${{ secrets.IT_REGION }}
 
 #
 
