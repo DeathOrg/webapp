@@ -52,11 +52,13 @@ jobs:
 
 
       - name: 'Create instance template'
+        id: create_instance_template
         run: |
           latest_image=my-webapp-2024-04-03-09-00-50
 
           random_string=$(openssl rand -hex 3)
           instance_template_name="${{ secrets.INSTANCE_TEMPLATE_PREFIX }}-${random_string}"
+          echo "::set-output name=instance_template_name::${instance_template_name}"
 
           echo "New instance template name: ${instance_template_name}"
           gcloud --quiet components install beta
@@ -85,7 +87,7 @@ jobs:
         run: |
           gcloud compute instance-groups managed rolling-action start-update ${{ secrets.MIG_NAME }} \
           --region=${{ secrets.IT_REGION }} \
-          --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.IT_REGION }}/instanceTemplates/${instance_template_name} \
+          --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.IT_REGION }}/instanceTemplates/${{ steps.create_instance_template.outputs.instance_template_name }} \
           --max-unavailable=${{ secrets.MIG_MAX_UNAVAILABLE }} \
           --type=${{ secrets.MIG_START_UPDATE_TYPE }}
 
