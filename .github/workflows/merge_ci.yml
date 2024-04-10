@@ -30,7 +30,7 @@ jobs:
           --project=tf-gcp-infra-27 \
           --machine-type=e2-small \
           --network-interface=network-tier=PREMIUM,subnet=webapp \
-          --region=us-central1 \
+          --instance-template-region=us-central1 \
           --metadata=startup-script="#!/bin/bash$'\n'echo \"DATABASE_HOST=10.64.0.5\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DATABASE_USER=dev-1\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DATABASE_PASSWORD=SK%QsF6QfQB7zkcO\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"PROJECT_ID=tf-gcp-infra-27\" >> /home/csye6225/cloud/webapp/config/.env$'\n'echo \"DOMAIN_NAME=sourabhk.com\" >> /home/csye6225/cloud/webapp/config/.env$'\n'/home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp$'\n'rm -rf /var/log/myapp/app.log$'\n'rm -rf /home/csye6225/cloud/webapp/LICENSE /home/csye6225/cloud/webapp/packer/ /home/csye6225/cloud/webapp/README.md /home/csye6225/cloud/webapp/requirements/ /home/csye6225/cloud/webapp/.gitignore$'\n'touch /home/csye6225/cloud/workdone" \
           --maintenance-policy=MIGRATE \
           --provisioning-model=STANDARD \
@@ -52,7 +52,7 @@ jobs:
 
       - name: 'Wait till all the instances get refresed'
         run: |
-          gcloud compute instance-groups managed wait-until appserver-ig \
+          gcloud compute instance-groups managed wait-until appserver-igm \
           --version-target-reached \
           --region=us-central1
 
