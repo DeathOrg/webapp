@@ -63,7 +63,7 @@ jobs:
           echo "New instance template name: ${instance_template_name}"
           gcloud --quiet components install beta
           gcloud beta compute instance-templates create ${instance_template_name} \
-          --description="This template is used to create app server instances." \
+          --description=This template is used to create app server instances \
           --project=${{ secrets.GCP_PROJECT_ID }} \
           --machine-type=${{ secrets.IT_MACHINE_TYPE }} \
           --network-interface=network-tier=${{ secrets.IT_NETWORK_TIER }},subnet=${{ secrets.IT_SUBNET }} \
