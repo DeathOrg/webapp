@@ -63,6 +63,7 @@ jobs:
           echo "New instance template name: ${instance_template_name}"
           gcloud --quiet components install beta
           gcloud beta compute instance-templates create ${instance_template_name} \
+          --description="This template is used to create app server instances." \
           --project=${{ secrets.GCP_PROJECT_ID }} \
           --machine-type=${{ secrets.IT_MACHINE_TYPE }} \
           --network-interface=network-tier=${{ secrets.IT_NETWORK_TIER }},subnet=${{ secrets.IT_SUBNET }} \
@@ -74,10 +75,10 @@ jobs:
           --service-account=${{ secrets.IT_SERVICE_ACCOUNT }} \
           --scopes=${{ secrets.IT_SCOPES }} \
           --tags=${{ secrets.IT_TAGS }} \
-          --create-disk=auto-delete=${{ secrets.IT_AUTO_DELETE }},boot=${{ secrets.IT_BOOT }},device-name=${instance_template_name},image=projects/${{ secrets.GCP_PROJECT_ID }}/global/images/${latest_image},kms-key=projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.IT_REGION }}/keyRings/${{ secrets.IT_KEY_RING }}/cryptoKeys/${{ secrets.IT_VM_KEY }},mode=rw,size=${{ secrets.IT_DISK_SIZE }},type=${{ secrets.IT_DISK_TYPE }} \
-          --no-shielded-secure-boot \
-          --no-shielded-vtpm \
-          --no-shielded-integrity-monitoring \
+          --create-disk=auto-delete=${{ secrets.IT_AUTO_DELETE }},boot=${{ secrets.IT_BOOT }},device-name=${instance_template_name},image=projects/${{ secrets.GCP_PROJECT_ID }}/global/images/${latest_image},kms-key=projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.IT_REGION }}/keyRings/${{ secrets.IT_KEY_RING }}/cryptoKeys/${{ secrets.IT_VM_KEY }},mode=rw,size=${{ secrets.IT_DISK_SIZE }},type=${{ secrets.IT_DISK_TYPE }} \         
+          --no-shielded-secure-boot 
+          --shielded-vtpm 
+          --shielded-integrity-monitoring 
           --reservation-affinity=any
           
           
