@@ -25,10 +25,14 @@ jobs:
 
       - name: 'Create instance template'
         run: |
-          gcloud compute instance-groups managed rolling-action start-update appserver-igm \
-          --region=us-central1 \
-          --version=template=instance-template-20240409-083112 \
-          --type=opportunistic
+          gcloud compute instance-groups managed recreate-instances appserver-igm \
+          --instances=INSTANCE \
+          --region=us-central1
+#        run: |
+#          gcloud compute instance-groups managed rolling-action start-update appserver-igm \
+#          --region=us-central1 \
+#          --version=template=instance-template-20240409-083112 \
+#          --type=opportunistic
 
 #        run: |
 #          gcloud --quiet components install beta
