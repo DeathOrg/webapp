@@ -43,6 +43,8 @@ jobs:
           --no-shielded-vtpm \
           --no-shielded-integrity-monitoring \
           --reservation-affinity=any
+          
+          sleep 60
 
       - name: 'Update MIG with new instance template'
         run: |
