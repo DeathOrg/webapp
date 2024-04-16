@@ -1,7 +1,7 @@
 name: Build and Image Creation
 
 on:
-  push:
+  pull_request:
     branches: [ main ]
 
 jobs:
@@ -63,59 +63,59 @@ jobs:
           image_name=$(echo "$output" | grep -oE 'my-webapp-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}' | tail -n1)
           echo "::set-output name=image_name::$image_name"
 
-      - name: 'Create instance template'
-        id: create_instance_template
-        run: |
-          latest_image=${{ steps.build_latest_app_image.outputs.image_name }}
-          echo "latest image id : ${latest_image}"
-          random_string=$(openssl rand -hex 3)
-          instance_template_name="${{ secrets.INSTANCE_TEMPLATE_PREFIX }}-${random_string}"
-          echo "::set-output name=instance_template_name::${instance_template_name}"
-          echo "New instance template name: ${instance_template_name}"
-          gcloud --quiet components install beta
-          gcloud beta compute instance-templates create ${instance_template_name} \
-          --project=${{ secrets.GCP_PROJECT_ID }} \
-          --description="This template is used to create app server instances" \
-          --machine-type=${{ secrets.IT_MACHINE_TYPE }} \
-          --network-interface=network-tier=${{ secrets.IT_NETWORK_TIER }},subnet=${{ secrets.IT_SUBNET }} \
-          --instance-template-region=${{ secrets.IT_REGION }} \
-          --region=${{ secrets.IT_REGION }} \
-          --metadata=startup-script="#!/bin/bash
-            echo \"DATABASE_HOST=${{ secrets.DATABASE_HOST }}\" >> /home/csye6225/cloud/webapp/config/.env
-            echo \"DATABASE_USER=${{ secrets.DATABASE_USER }}\" >> /home/csye6225/cloud/webapp/config/.env
-            echo \"DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}\" >> /home/csye6225/cloud/webapp/config/.env
-            echo \"PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}\" >> /home/csye6225/cloud/webapp/config/.env
-            echo \"DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}\" >> /home/csye6225/cloud/webapp/config/.env
-            /home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp
-            rm -rf /var/log/myapp/app.log
-            rm -rf /home/csye6225/cloud/webapp/LICENSE /home/csye6225/cloud/webapp/packer/ /home/csye6225/cloud/webapp/README.md /home/csye6225/cloud/webapp/requirements/ /home/csye6225/cloud/webapp/.gitignore
-            touch /home/csye6225/cloud/workdone" \
-          --maintenance-policy=${{ secrets.IT_MAINTENANCE_POLICY }} \
-          --provisioning-model=${{ secrets.IT_PROVISIONING_MODEL }} \
-          --service-account=${{ secrets.IT_SERVICE_ACCOUNT }} \
-          --scopes=${{ secrets.IT_SCOPES }} \
-          --tags=${{ secrets.IT_TAGS }} \
-          --create-disk=auto-delete=${{ secrets.IT_AUTO_DELETE }},boot=${{ secrets.IT_BOOT }},device-name=${instance_template_name},image=projects/${{ secrets.GCP_PROJECT_ID }}/global/images/${latest_image},kms-key=projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.IT_REGION }}/keyRings/${{ secrets.IT_KEY_RING }}/cryptoKeys/${{ secrets.IT_VM_KEY }},mode=rw,size=${{ secrets.IT_DISK_SIZE }},type=${{ secrets.IT_DISK_TYPE }} \
-          --no-shielded-secure-boot \
-          --shielded-vtpm \
-          --shielded-integrity-monitoring \
-          --reservation-affinity=any
-          
-          rm -f metadata.sh
-
-      - name: 'Update MIG with new instance template'
-        run: |
-          gcloud compute instance-groups managed rolling-action start-update ${{ secrets.MIG_NAME }} \
-          --region=${{ secrets.IT_REGION }} \
-          --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.IT_REGION }}/instanceTemplates/${{ steps.create_instance_template.outputs.instance_template_name }} \
-          --max-unavailable=${{ secrets.MIG_MAX_UNAVAILABLE }} \
-          --type=${{ secrets.MIG_START_UPDATE_TYPE }}
-
-      - name: 'Wait till all the instances get refreshed'
-        run: |
-          gcloud compute instance-groups managed wait-until ${{ secrets.MIG_NAME }} \
-          --version-target-reached \
-          --region=${{ secrets.IT_REGION }}
+#      - name: 'Create instance template'
+#        id: create_instance_template
+#        run: |
+#          latest_image=${{ steps.build_latest_app_image.outputs.image_name }}
+#          echo "latest image id : ${latest_image}"
+#          random_string=$(openssl rand -hex 3)
+#          instance_template_name="${{ secrets.INSTANCE_TEMPLATE_PREFIX }}-${random_string}"
+#          echo "::set-output name=instance_template_name::${instance_template_name}"
+#          echo "New instance template name: ${instance_template_name}"
+#          gcloud --quiet components install beta
+#          gcloud beta compute instance-templates create ${instance_template_name} \
+#          --project=${{ secrets.GCP_PROJECT_ID }} \
+#          --description="This template is used to create app server instances" \
+#          --machine-type=${{ secrets.IT_MACHINE_TYPE }} \
+#          --network-interface=network-tier=${{ secrets.IT_NETWORK_TIER }},subnet=${{ secrets.IT_SUBNET }} \
+#          --instance-template-region=${{ secrets.IT_REGION }} \
+#          --region=${{ secrets.IT_REGION }} \
+#          --metadata=startup-script="#!/bin/bash
+#            echo \"DATABASE_HOST=${{ secrets.DATABASE_HOST }}\" >> /home/csye6225/cloud/webapp/config/.env
+#            echo \"DATABASE_USER=${{ secrets.DATABASE_USER }}\" >> /home/csye6225/cloud/webapp/config/.env
+#            echo \"DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}\" >> /home/csye6225/cloud/webapp/config/.env
+#            echo \"PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}\" >> /home/csye6225/cloud/webapp/config/.env
+#            echo \"DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}\" >> /home/csye6225/cloud/webapp/config/.env
+#            /home/csye6225/cloud/webapp/setup.sh /home/csye6225/cloud/webapp
+#            rm -rf /var/log/myapp/app.log
+#            rm -rf /home/csye6225/cloud/webapp/LICENSE /home/csye6225/cloud/webapp/packer/ /home/csye6225/cloud/webapp/README.md /home/csye6225/cloud/webapp/requirements/ /home/csye6225/cloud/webapp/.gitignore
+#            touch /home/csye6225/cloud/workdone" \
+#          --maintenance-policy=${{ secrets.IT_MAINTENANCE_POLICY }} \
+#          --provisioning-model=${{ secrets.IT_PROVISIONING_MODEL }} \
+#          --service-account=${{ secrets.IT_SERVICE_ACCOUNT }} \
+#          --scopes=${{ secrets.IT_SCOPES }} \
+#          --tags=${{ secrets.IT_TAGS }} \
+#          --create-disk=auto-delete=${{ secrets.IT_AUTO_DELETE }},boot=${{ secrets.IT_BOOT }},device-name=${instance_template_name},image=projects/${{ secrets.GCP_PROJECT_ID }}/global/images/${latest_image},kms-key=projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.IT_REGION }}/keyRings/${{ secrets.IT_KEY_RING }}/cryptoKeys/${{ secrets.IT_VM_KEY }},mode=rw,size=${{ secrets.IT_DISK_SIZE }},type=${{ secrets.IT_DISK_TYPE }} \
+#          --no-shielded-secure-boot \
+#          --shielded-vtpm \
+#          --shielded-integrity-monitoring \
+#          --reservation-affinity=any
+#
+#          rm -f metadata.sh
+#
+#      - name: 'Update MIG with new instance template'
+#        run: |
+#          gcloud compute instance-groups managed rolling-action start-update ${{ secrets.MIG_NAME }} \
+#          --region=${{ secrets.IT_REGION }} \
+#          --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/${{ secrets.IT_REGION }}/instanceTemplates/${{ steps.create_instance_template.outputs.instance_template_name }} \
+#          --max-unavailable=${{ secrets.MIG_MAX_UNAVAILABLE }} \
+#          --type=${{ secrets.MIG_START_UPDATE_TYPE }}
+#
+#      - name: 'Wait till all the instances get refreshed'
+#        run: |
+#          gcloud compute instance-groups managed wait-until ${{ secrets.MIG_NAME }} \
+#          --version-target-reached \
+#          --region=${{ secrets.IT_REGION }}
 
       - name: Report status
         if: always()
