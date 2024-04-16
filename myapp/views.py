@@ -211,7 +211,7 @@ def create_user(request):
                     return JsonResponse({'error': 'User with this username already exists.'}, status=400)
                 else:
                     hostname = os.getenv('DOMAIN_NAME')
-                    verification_api = "v1/verify"
+                    verification_api = "v4/verify"
 
                     pubsub_topic = "verify_email"
                     pubsub_msg = {
@@ -245,7 +245,7 @@ def create_user(request):
                     username=user.username,
                 )
                 hostname = os.getenv('DOMAIN_NAME')
-                verification_api = "v1/verify"
+                verification_api = "v4/verify"
 
                 pubsub_topic = "verify_email"
                 pubsub_msg = {
